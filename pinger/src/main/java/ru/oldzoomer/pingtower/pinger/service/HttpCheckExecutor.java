@@ -10,6 +10,7 @@ import javax.net.ssl.HttpsURLConnection;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
@@ -32,7 +33,7 @@ public class HttpCheckExecutor implements CheckExecutor {
         long timeToFirstByte = 0;
         
         try {
-            URL url = new URL(config.getResourceUrl());
+            URL url = new URI(config.getResourceUrl()).toURL();
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             
             // Установка таймаутов
