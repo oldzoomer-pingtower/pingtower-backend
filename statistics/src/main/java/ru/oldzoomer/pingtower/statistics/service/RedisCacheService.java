@@ -90,7 +90,6 @@ public class RedisCacheService {
             redisTemplate.delete(latestKey);
             
             // Удаление всех агрегированных данных для проверки
-            String pattern = AGGREGATED_KEY_PREFIX + checkId + ":*";
             // В реальной реализации здесь нужно использовать SCAN для поиска ключей по шаблону
             // и удалить их все
             
