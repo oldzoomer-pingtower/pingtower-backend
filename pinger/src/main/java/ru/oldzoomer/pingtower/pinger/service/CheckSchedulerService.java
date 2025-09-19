@@ -2,6 +2,7 @@ package ru.oldzoomer.pingtower.pinger.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import ru.oldzoomer.pingtower.pinger.dto.CheckConfiguration;
@@ -77,7 +78,8 @@ public class CheckSchedulerService {
      * Выполнение проверки
      * @param config конфигурация проверки
      */
-    private void executeCheck(CheckConfiguration config) {
+    @Cacheable(value = "last-results", key = "#config.getId()")
+    public void executeCheck(CheckConfiguration config) {
         try {
             log.info("Executing check for {} ({})", config.getId(), config.getResourceUrl());
             

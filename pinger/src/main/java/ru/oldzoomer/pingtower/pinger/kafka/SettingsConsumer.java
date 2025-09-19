@@ -1,6 +1,8 @@
 package ru.oldzoomer.pingtower.pinger.kafka;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.handler.annotation.Header;
@@ -98,7 +100,36 @@ public class SettingsConsumer {
      * Получение всех конфигураций проверок
      * @return карта конфигураций проверок
      */
+    @Cacheable("check-configurations")
     public Map<String, CheckConfiguration> getCheckConfigurations() {
         return checkConfigurations;
+    }
+    
+    /**
+     * Получение конфигурации проверки по ID
+     * @param checkId ID проверки
+     * @return конфигурация проверки
+     */
+    @Cacheable(value = "check-configurations", key = "#checkId")
+    public CheckConfiguration getCheckConfiguration(String checkId) {
+        return checkConfigurations.get(checkId);
+    }
+    
+    /**
+     * Обновление конфигурации проверки
+     * @param config конфигурация проверки
+     */
+    @CacheEvict(value = "check-configurations", key = "#config.getId()")
+    public void updateCheckConfiguration(CheckConfiguration config) {
+        checkConfigurations.put(config.getId(), config);
+    }
+    
+    /**
+     * Удаление конфигурации проверки
+     * @param checkId ID проверки
+     */
+    @CacheEvict(value = "check-configurations", key = "#checkId")
+    public void removeCheckConfiguration(String checkId) {
+        checkConfigurations.remove(checkId);
     }
 }
