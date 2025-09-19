@@ -2,6 +2,8 @@ package ru.oldzoomer.pingtower.notificator.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,6 +28,7 @@ public class ConfigurationService {
         log.info("ConfigurationService initialized with {} settings", configuration.size());
     }
     
+    @Cacheable(value = "settings", key = "#key")
     public Object getSetting(String key) {
         if (key == null || key.isEmpty()) {
             log.warn("Attempt to get setting with null or empty key");
@@ -37,11 +40,13 @@ public class ConfigurationService {
         return value;
     }
     
+    @Cacheable(value = "stringSettings", key = "#key")
     public String getStringSetting(String key) {
         Object value = getSetting(key);
         return value != null ? value.toString() : null;
     }
     
+    @Cacheable(value = "intSettings", key = "#key")
     public Integer getIntSetting(String key) {
         Object value = getSetting(key);
         if (value instanceof Integer) {
@@ -59,6 +64,7 @@ public class ConfigurationService {
         return null;
     }
     
+    @Cacheable(value = "booleanSettings", key = "#key")
     public Boolean getBooleanSetting(String key) {
         Object value = getSetting(key);
         if (value instanceof Boolean) {
@@ -112,6 +118,7 @@ public class ConfigurationService {
     }
     
     // Метод для обновления настроек
+    @CacheEvict(value = {"settings", "stringSettings", "booleanSettings", "intSettings", "longSettings"}, key = "#key")
     public void updateSetting(String key, Object value) {
         if (key == null || key.isEmpty()) {
             log.warn("Attempt to update setting with null or empty key");

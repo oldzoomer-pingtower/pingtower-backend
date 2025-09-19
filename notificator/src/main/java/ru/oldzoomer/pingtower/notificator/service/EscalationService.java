@@ -3,6 +3,8 @@ package ru.oldzoomer.pingtower.notificator.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 import ru.oldzoomer.pingtower.notificator.dto.AlertMessage;
 
 import java.time.LocalDateTime;
@@ -46,6 +48,7 @@ public class EscalationService {
      * @param alert уведомление для проверки
      * @return уровень эскалации (0 - без эскалации, >0 - уровень эскалации)
      */
+    @Cacheable(value = "escalationStates", key = "#alert.checkId + ':' + #alert.resourceUrl")
     public int checkEscalation(AlertMessage alert) {
         if (alert == null) {
             log.warn("Attempt to check escalation for null alert");
@@ -159,6 +162,7 @@ public class EscalationService {
      * Сбрасывает состояние эскалации для уведомления
      * @param alert уведомление
      */
+    @CacheEvict(value = "escalationStates", key = "#alert.checkId + ':' + #alert.resourceUrl")
     public void resetEscalation(AlertMessage alert) {
         if (alert == null) {
             log.warn("Attempt to reset escalation for null alert");

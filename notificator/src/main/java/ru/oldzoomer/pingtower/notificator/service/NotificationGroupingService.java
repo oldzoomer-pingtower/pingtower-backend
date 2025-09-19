@@ -3,6 +3,7 @@ package ru.oldzoomer.pingtower.notificator.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.cache.annotation.Cacheable;
 import ru.oldzoomer.pingtower.notificator.dto.AlertMessage;
 
 import java.time.LocalDateTime;
@@ -55,6 +56,7 @@ public class NotificationGroupingService {
      * @param alert уведомление для добавления
      * @return true, если группа готова к отправке, false в противном случае
      */
+    @Cacheable(value = "notificationGroups", key = "#alert.resourceUrl")
     public boolean addAlertToGroup(AlertMessage alert) {
         if (alert == null) {
             log.warn("Attempt to add null alert to group");
