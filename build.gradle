@@ -36,6 +36,11 @@ subprojects {
         }
     }
 
+    ext {
+        mapstructVersion = '1.6.3'
+        therapiVersion = '0.15.0'
+    }
+
     dependencies {
         compileOnly 'org.projectlombok:lombok'
         annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
