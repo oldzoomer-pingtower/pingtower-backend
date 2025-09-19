@@ -35,6 +35,7 @@ public class CacheService {
         redisTemplate.opsForValue().set(key, settings, 1, TimeUnit.HOURS);
     }
 
+    @SuppressWarnings("unchecked")
     public List<Setting> getModuleSettingsFromCache(String module) {
         String key = MODULE_PREFIX + module + ":*";
         return (List<Setting>) redisTemplate.opsForValue().get(key);
@@ -45,6 +46,7 @@ public class CacheService {
         redisTemplate.opsForValue().set(key, settings, 30, TimeUnit.MINUTES);
     }
 
+    @SuppressWarnings("unchecked")
     public List<Setting> getRecentSettingsFromCache() {
         String key = RECENT_PREFIX + "*";
         return (List<Setting>) redisTemplate.opsForValue().get(key);

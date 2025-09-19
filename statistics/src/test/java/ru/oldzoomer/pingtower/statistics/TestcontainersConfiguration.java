@@ -23,6 +23,7 @@ class TestcontainersConfiguration {
 		return new KafkaContainer(DockerImageName.parse("apache/kafka-native:latest"));
 	}
 
+	@SuppressWarnings("resource")
 	@Bean
 	@ServiceConnection(name = "redis")
 	GenericContainer<?> redisContainer() {
