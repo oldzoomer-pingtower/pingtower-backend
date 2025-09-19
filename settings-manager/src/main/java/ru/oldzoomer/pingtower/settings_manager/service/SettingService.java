@@ -1,5 +1,9 @@
 package ru.oldzoomer.pingtower.settings_manager.service;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.oldzoomer.pingtower.settings_manager.dto.Setting;
@@ -15,11 +19,9 @@ import java.util.stream.Collectors;
 public class SettingService {
 
     private final SettingRepository settingRepository;
-    private final CacheService cacheService;
 
-    public SettingService(SettingRepository settingRepository, CacheService cacheService) {
+    public SettingService(SettingRepository settingRepository) {
         this.settingRepository = settingRepository;
-        this.cacheService = cacheService;
     }
 
     public List<Setting> getAllSettings() {
@@ -28,44 +30,26 @@ public class SettingService {
                 .collect(Collectors.toList());
     }
 
+    @Cacheable(value = "moduleSettings", key = "#module")
     public List<Setting> getSettingsByModule(String module) {
-        // Попробуем сначала получить из кэша
-        List<Setting> cachedSettings = cacheService.getModuleSettingsFromCache(module);
-        if (cachedSettings != null) {
-            return cachedSettings;
-        }
-
-        // Если нет в кэше, получим из БД
-        List<Setting> settings = settingRepository.findByModule(module).stream()
+        // Получим из БД
+        return settingRepository.findByModule(module).stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
-
-        // Сохраним в кэш
-        cacheService.cacheModuleSettings(module, settings);
-
-        return settings;
     }
 
+    @Cacheable(value = "setting", key = "#module + ':' + #key")
     public Optional<Setting> getSetting(String module, String key) {
-        // Попробуем сначала получить из кэша
-        Setting cachedSetting = cacheService.getSettingFromCache(module, key);
-        if (cachedSetting != null) {
-            return Optional.of(cachedSetting);
-        }
-
-        // Если нет в кэше, получим из БД
+        // Получим из БД
         Optional<SettingEntity> settingEntity = settingRepository.findByModuleAndKey(module, key);
-        if (settingEntity.isPresent()) {
-            Setting setting = convertToDto(settingEntity.get());
-            // Сохраним в кэш
-            cacheService.cacheSetting(setting);
-            return Optional.of(setting);
-        }
-
-        return Optional.empty();
+        return settingEntity.map(this::convertToDto);
     }
 
     @Transactional
+    @Caching(
+        put = { @CachePut(value = "setting", key = "#result.module + ':' + #result.key") },
+        evict = { @CacheEvict(value = "moduleSettings", key = "#result.module") }
+    )
     public Setting createSetting(Setting setting) {
         SettingEntity entity = convertToEntity(setting);
         entity.setCreatedAt(LocalDateTime.now());
@@ -73,16 +57,14 @@ public class SettingService {
         entity.setVersion(0);
 
         SettingEntity savedEntity = settingRepository.save(entity);
-        Setting savedSetting = convertToDto(savedEntity);
-
-        // Обновим кэш
-        cacheService.cacheSetting(savedSetting);
-        cacheService.invalidateModuleCache(savedSetting.getModule());
-
-        return savedSetting;
+        return convertToDto(savedEntity);
     }
 
     @Transactional
+    @Caching(
+        put = { @CachePut(value = "setting", key = "#module + ':' + #key") },
+        evict = { @CacheEvict(value = "moduleSettings", key = "#module") }
+    )
     public Setting updateSetting(String module, String key, Setting setting) {
         Optional<SettingEntity> existingEntity = settingRepository.findByModuleAndKey(module, key);
         if (existingEntity.isPresent()) {
@@ -93,27 +75,23 @@ public class SettingService {
             entity.setVersion(entity.getVersion() + 1);
 
             SettingEntity updatedEntity = settingRepository.save(entity);
-            Setting updatedSetting = convertToDto(updatedEntity);
-
-            // Обновим кэш
-            cacheService.cacheSetting(updatedSetting);
-            cacheService.invalidateModuleCache(updatedSetting.getModule());
-
-            return updatedSetting;
+            return convertToDto(updatedEntity);
         } else {
             throw new RuntimeException("Setting not found: " + module + "." + key);
         }
     }
 
     @Transactional
+    @Caching(
+        evict = {
+            @CacheEvict(value = "setting", key = "#module + ':' + #key"),
+            @CacheEvict(value = "moduleSettings", key = "#module")
+        }
+    )
     public void deleteSetting(String module, String key) {
         Optional<SettingEntity> existingEntity = settingRepository.findByModuleAndKey(module, key);
         if (existingEntity.isPresent()) {
             settingRepository.delete(existingEntity.get());
-
-            // Удалим из кэша
-            cacheService.invalidateSettingCache(module, key);
-            cacheService.invalidateModuleCache(module);
         } else {
             throw new RuntimeException("Setting not found: " + module + "." + key);
         }

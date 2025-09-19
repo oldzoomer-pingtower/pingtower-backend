@@ -1,5 +1,7 @@
 package ru.oldzoomer.pingtower.settings_manager.service;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.oldzoomer.pingtower.settings_manager.dto.User;
@@ -21,24 +23,29 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
+    @Cacheable("users")
     public List<User> getAllUsers() {
         return userRepository.findAll().stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
 
+    @Cacheable(value = "users", key = "#id")
     public Optional<User> getUserById(UUID id) {
         return userRepository.findById(id).map(this::convertToDto);
     }
 
+    @Cacheable(value = "users", key = "#username")
     public Optional<User> getUserByUsername(String username) {
         return userRepository.findByUsername(username).map(this::convertToDto);
     }
 
+    @Cacheable(value = "users", key = "#email")
     public Optional<User> getUserByEmail(String email) {
         return userRepository.findByEmail(email).map(this::convertToDto);
     }
 
+    @CacheEvict("users")
     @Transactional
     public User createUser(User user) {
         // Проверим, что пользователя с таким именем или email еще нет
@@ -57,6 +64,7 @@ public class UserService {
         return convertToDto(savedEntity);
     }
 
+    @CacheEvict(value = "users", key = "#id")
     @Transactional
     public User updateUser(UUID id, User user) {
         Optional<UserEntity> existingEntity = userRepository.findById(id);
@@ -86,6 +94,7 @@ public class UserService {
         }
     }
 
+    @CacheEvict(value = "users", key = "#id")
     @Transactional
     public void deleteUser(UUID id) {
         if (userRepository.existsById(id)) {

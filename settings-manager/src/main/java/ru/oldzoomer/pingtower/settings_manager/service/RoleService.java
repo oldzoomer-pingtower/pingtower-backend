@@ -1,5 +1,7 @@
 package ru.oldzoomer.pingtower.settings_manager.service;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.oldzoomer.pingtower.settings_manager.dto.Role;
@@ -24,20 +26,24 @@ public class RoleService {
         this.userRoleRepository = userRoleRepository;
     }
 
+    @Cacheable("roles")
     public List<Role> getAllRoles() {
         return roleRepository.findAll().stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
 
+    @Cacheable(value = "roles", key = "#id")
     public Optional<Role> getRoleById(UUID id) {
         return roleRepository.findById(id).map(this::convertToDto);
     }
 
+    @Cacheable(value = "roles", key = "#name")
     public Optional<Role> getRoleByName(String name) {
         return roleRepository.findByName(name).map(this::convertToDto);
     }
 
+    @CacheEvict("roles")
     @Transactional
     public Role createRole(Role role) {
         // Проверим, что роль с таким именем еще нет
@@ -53,6 +59,7 @@ public class RoleService {
         return convertToDto(savedEntity);
     }
 
+    @CacheEvict(value = "roles", key = "#id")
     @Transactional
     public Role updateRole(UUID id, Role role) {
         Optional<RoleEntity> existingEntity = roleRepository.findById(id);
@@ -77,6 +84,7 @@ public class RoleService {
         }
     }
 
+    @CacheEvict(value = "roles", key = "#id")
     @Transactional
     public void deleteRole(UUID id) {
         if (roleRepository.existsById(id)) {
