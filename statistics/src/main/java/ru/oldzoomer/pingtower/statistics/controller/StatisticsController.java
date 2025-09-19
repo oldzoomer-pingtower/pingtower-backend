@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import ru.oldzoomer.pingtower.statistics.dto.CheckResult;
-import ru.oldzoomer.pingtower.statistics.service.RedisCacheService;
 import ru.oldzoomer.pingtower.statistics.service.StatisticsRetrievalService;
 
 @Slf4j
@@ -19,7 +18,6 @@ import ru.oldzoomer.pingtower.statistics.service.StatisticsRetrievalService;
 @RequiredArgsConstructor
 public class StatisticsController {
     private final StatisticsRetrievalService statisticsRetrievalService;
-    private final RedisCacheService redisCacheService;
     
     /**
      * Получение последних результатов проверки
@@ -29,14 +27,7 @@ public class StatisticsController {
     @GetMapping("/checks/{checkId}/latest")
     public ResponseEntity<CheckResult> getLatestCheckResult(@PathVariable String checkId) {
         try {
-            // Пытаемся получить данные из кэша
-            CheckResult cachedResult = redisCacheService.getLatestResult(checkId);
-            if (cachedResult != null) {
-                log.debug("Returning cached latest result for checkId: {}", checkId);
-                return ResponseEntity.ok(cachedResult);
-            }
-            
-            // Если в кэше нет, получаем из сервиса
+            // Получаем из сервиса
             CheckResult result = statisticsRetrievalService.getLatestCheckResult(checkId);
             if (result != null) {
                 return ResponseEntity.ok(result);
@@ -89,14 +80,7 @@ public class StatisticsController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to) {
         try {
-            // Пытаемся получить данные из кэша
-            Object cachedData = redisCacheService.getAggregatedData(checkId, interval);
-            if (cachedData != null) {
-                log.debug("Returning cached aggregated data for checkId: {}, interval: {}", checkId, interval);
-                return ResponseEntity.ok(cachedData);
-            }
-            
-            // Если в кэше нет, получаем из сервиса
+            // Получаем из сервиса
             Object aggregatedData = statisticsRetrievalService.getAggregatedData(checkId, interval, from, to);
             if (aggregatedData != null) {
                 return ResponseEntity.ok(aggregatedData);

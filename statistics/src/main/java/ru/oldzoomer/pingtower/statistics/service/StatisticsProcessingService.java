@@ -16,7 +16,6 @@ import ru.oldzoomer.pingtower.statistics.dto.CheckResult;
 @RequiredArgsConstructor
 public class StatisticsProcessingService {
     private final RawCheckResultRepository rawCheckResultRepository;
-    private final RedisCacheService redisCacheService;
     private final AggregationService aggregationService;
     
     /**
@@ -27,9 +26,6 @@ public class StatisticsProcessingService {
         try {
             // Сохраняем сырые данные в Cassandra
             saveRawCheckResult(checkResult);
-            
-            // Обновляем кэш с последним результатом
-            redisCacheService.cacheLatestResult(checkResult);
             
             // Передаем данные в сервис агрегации
             aggregationService.processCheckResultForAggregation(checkResult);

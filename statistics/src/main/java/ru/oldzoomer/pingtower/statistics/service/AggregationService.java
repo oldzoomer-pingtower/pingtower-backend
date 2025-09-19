@@ -17,7 +17,6 @@ import ru.oldzoomer.pingtower.statistics.dto.CheckResult;
 @RequiredArgsConstructor
 public class AggregationService {
     private final AggregatedCheckResultRepository aggregatedCheckResultRepository;
-    private final RedisCacheService redisCacheService;
     
     // Хранилище для промежуточных агрегированных данных
     private final Map<String, AggregationData> aggregationDataMap = new ConcurrentHashMap<>();
@@ -105,9 +104,6 @@ public class AggregationService {
             
             // Сохраняем в Cassandra
             aggregatedCheckResultRepository.save(aggregatedCheckResult);
-            
-            // Обновляем кэш
-            redisCacheService.cacheAggregatedData(checkId, interval, aggregatedCheckResult);
             
             log.debug("Saved aggregated data: checkId={}, interval={}", checkId, interval);
         } catch (Exception e) {
