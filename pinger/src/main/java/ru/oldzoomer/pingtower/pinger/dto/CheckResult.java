@@ -2,7 +2,6 @@ package ru.oldzoomer.pingtower.pinger.dto;
 
 import lombok.Data;
 import java.time.LocalDateTime;
-import java.util.Map;
 
 @Data
 public class CheckResult {

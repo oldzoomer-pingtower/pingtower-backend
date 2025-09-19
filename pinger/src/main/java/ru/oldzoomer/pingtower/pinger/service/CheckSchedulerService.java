@@ -9,7 +9,6 @@ import ru.oldzoomer.pingtower.pinger.dto.CheckResult;
 import ru.oldzoomer.pingtower.pinger.kafka.CheckResultProducer;
 import ru.oldzoomer.pingtower.pinger.kafka.SettingsConsumer;
 
-import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;

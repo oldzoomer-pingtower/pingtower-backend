@@ -11,7 +11,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class NotificationService {
-    private final ConfigurationService configurationService;
+    // private final ConfigurationService configurationService;
     private final NotificationGroupingService notificationGroupingService;
     private final EscalationService escalationService;
     private final EmailNotificationService emailNotificationService;

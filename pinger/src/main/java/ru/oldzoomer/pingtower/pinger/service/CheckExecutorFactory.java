@@ -3,8 +3,6 @@ package ru.oldzoomer.pingtower.pinger.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import ru.oldzoomer.pingtower.pinger.dto.CheckConfiguration;
-
 import java.util.List;
 
 @Slf4j
