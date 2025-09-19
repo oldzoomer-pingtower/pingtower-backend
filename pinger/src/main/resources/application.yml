@@ -1,0 +1,49 @@
+spring:
+  application:
+    name: pinger
+
+  # Kafka Configuration
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: pinger-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: ru.oldzoomer.pingtower.pinger.dto
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+  # Scheduler Configuration
+  task:
+    scheduling:
+      pool:
+        size: 10
+
+  # Cache Configuration
+  cache:
+    type: redis
+    redis:
+      time-to-live: 3600000
+      cache-null-values: false
+      use-key-prefix: true
+      key-prefix: "cache:"
+
+  # Redis Configuration
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+# HTTP Client Configuration
+pinger:
+  http:
+    connect-timeout: 5000
+    read-timeout: 10000
+    connection-request-timeout: 2000
+
+# Logging Configuration
+logging:
+  level:
+    ru.oldzoomer.pingtower.pinger: DEBUG
