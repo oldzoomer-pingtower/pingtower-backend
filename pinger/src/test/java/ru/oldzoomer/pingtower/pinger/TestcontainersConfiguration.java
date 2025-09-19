@@ -13,6 +13,7 @@ import java.time.Duration;
 @TestConfiguration(proxyBeanMethods = false)
 class TestcontainersConfiguration {
 
+	@SuppressWarnings("resource")
 	@Bean
 	@ServiceConnection
 	KafkaContainer kafkaContainer() {
