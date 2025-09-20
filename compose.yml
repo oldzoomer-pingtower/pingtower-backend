@@ -273,10 +273,7 @@ services:
       - KAFKA_BOOTSTRAP_SERVERS=redpanda:29092
       - REDIS_HOST=redis
       - REDIS_PASSWORD=${REDIS_PASSWORD:-pingtower}
-      - POSTGRES_HOST=postgres:5432
-      - POSTGRES_USER=${POSTGRES_USER:-pingtower}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-pingtower}
-      - POSTGRES_DB=${POSTGRES_DB:-pingtower}
+      - CASSANDRA_CONTACT_POINTS=cassandra
     labels:
       - "traefik.http.routers.statistics.rule=Host(`${DOMAIN:-localhost}`) && PathPrefix(`/statistics`)"
       - "traefik.http.routers.statistics.entrypoints=web"
