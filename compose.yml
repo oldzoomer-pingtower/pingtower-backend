@@ -1,0 +1,284 @@
+# PingTower Docker Compose Configuration
+#
+# Сервисы:
+# - redis: Кэширование данных
+# - redpanda: Очереди сообщений (Kafka)
+# - postgres: Основная база данных
+# - pingtower-*: Микросервисы системы
+#
+# Требуемые переменные окружения:
+# DOMAIN - домен приложения
+# POSTGRES_USER, POSTGRES_PASSWORD - доступ к PostgreSQL
+# REDIS_PASSWORD - пароль Redis
+#
+# Использование:
+# 1. Создать .env файл с переменными
+# 2. Запустить: docker compose up -d
+#
+# Версия: 1.0
+
+services:
+  redis:
+    image: redis:alpine
+    container_name: pingtower-redis
+    networks:
+      - pingtower
+    healthcheck:
+      test: redis-cli ping || exit 1
+      start_period: 30s
+      interval: 5s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+    command: redis-server --requirepass ${REDIS_PASSWORD:-pingtower}
+
+  cassandra:
+    image: cassandra
+    container_name: pingtower-cassandra
+    networks:
+      - pingtower
+    restart: unless-stopped
+    environment:
+      - CASSANDRA_CLUSTER_NAME=pingtower
+      - CASSANDRA_DC=datacenter1
+      - CASSANDRA_RACK=rack1
+      - CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch
+    volumes:
+      - cassandra_data:/var/lib/cassandra
+      - ./cassandra-init:/cassandra-init:ro
+    healthcheck:
+      test: ["CMD", "cqlsh", "-e", "DESCRIBE KEYSPACES"]
+      start_period: 60s
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  redpanda:
+    image: redpandadata/redpanda
+    container_name: pingtower-redpanda
+    restart: unless-stopped
+    hostname: redpanda
+    networks:
+      - pingtower
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+    command:
+      - redpanda start
+        --kafka-addr PLAINTEXT://0.0.0.0:29092,OUTSIDE://0.0.0.0:9092
+        --advertise-kafka-addr PLAINTEXT://redpanda:29092,OUTSIDE://redpanda:9092
+    volumes:
+      - redpanda_data:/var/lib/redpanda/data
+    healthcheck:
+      test: ["CMD", "rpk", "cluster", "health"]
+      start_period: 20s
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  postgres:
+    image: postgres:alpine
+    container_name: pingtower-postgres
+    networks:
+      - pingtower
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-pingtower}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-pingtower}
+      - POSTGRES_DB=${POSTGRES_DB:-pingtower}
+    volumes:
+      - postgres_storage:/var/lib/postgresql/data
+    healthcheck:
+      test: pg_isready -U ${POSTGRES_USER:-pingtower} || exit 1
+      start_period: 30s
+      interval: 5s
+      timeout: 10s
+      retries: 5
+
+  traefik:
+    container_name: pingtower-traefik
+    image: traefik:latest
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - pingtower
+    volumes:
+      - ./traefik:/etc/traefik/
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+  # Сервис проверки доступности систем
+  # Основные зависимости: PostgreSQL, Redis, Kafka
+  pingtower-pinger:
+    image: pingtower/pinger:latest
+    container_name: pingtower-pinger
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: pinger
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    networks:
+      - pingtower
+    expose:
+      - "8080"
+    restart: unless-stopped
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - KAFKA_BOOTSTRAP_SERVER=redpanda:9092
+      - REDIS_HOST=redis
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-pingtower}
+      - POSTGRES_HOST=postgres:5432
+      - POSTGRES_USER=${POSTGRES_USER:-pingtower}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-pingtower}
+      - POSTGRES_DB=${POSTGRES_DB:-pingtower}
+    labels:
+      - "traefik.http.routers.pinger.rule=Host(`${DOMAIN:-localhost}`) && PathPrefix(`/pinger`)"
+      - "traefik.http.routers.pinger.entrypoints=web"
+    depends_on:
+      traefik:
+        condition: service_healthy
+      redpanda:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      cassandra:
+        condition: service_healthy
+
+  # Сервис управления уведомлениями
+  # Основные зависимости: PostgreSQL, Redis, Kafka
+  pingtower-notificator:
+    image: pingtower/notificator:latest
+    container_name: pingtower-notificator
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: notificator
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    networks:
+      - pingtower
+    expose:
+      - "8080"
+    restart: unless-stopped
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - KAFKA_BOOTSTRAP_SERVER=redpanda:9092
+      - REDIS_HOST=redis
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-pingtower}
+      - POSTGRES_HOST=postgres:5432
+      - POSTGRES_USER=${POSTGRES_USER:-pingtower}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-pingtower}
+      - POSTGRES_DB=${POSTGRES_DB:-pingtower}
+    labels:
+      - "traefik.http.routers.notificator.rule=Host(`${DOMAIN:-localhost}`) && PathPrefix(`/notificator`)"
+      - "traefik.http.routers.notificator.entrypoints=web"
+    depends_on:
+      traefik:
+        condition: service_healthy
+      redpanda:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # Сервис управления настройками
+  # Основные зависимости: PostgreSQL
+  pingtower-settings-manager:
+    image: pingtower/settings-manager:latest
+    container_name: pingtower-settings-manager
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: settings-manager
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    networks:
+      - pingtower
+    expose:
+      - "8080"
+    restart: unless-stopped
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - POSTGRES_HOST=postgres:5432
+      - POSTGRES_USER=${POSTGRES_USER:-pingtower}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-pingtower}
+      - POSTGRES_DB=${POSTGRES_DB:-pingtower}
+    labels:
+      - "traefik.http.routers.settings.rule=Host(`${DOMAIN:-localhost}`) && PathPrefix(`/settings`)"
+      - "traefik.http.routers.settings.entrypoints=web"
+    depends_on:
+      traefik:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+
+  # Сервис статистики и агрегации данных
+  # Основные зависимости: PostgreSQL, Redis, Kafka
+  pingtower-statistics:
+    image: pingtower/statistics:latest
+    container_name: pingtower-statistics
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: statistics
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    networks:
+      - pingtower
+    expose:
+      - "8080"
+    restart: unless-stopped
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - KAFKA_BOOTSTRAP_SERVER=redpanda:9092
+      - REDIS_HOST=redis
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-pingtower}
+      - POSTGRES_HOST=postgres:5432
+      - POSTGRES_USER=${POSTGRES_USER:-pingtower}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-pingtower}
+      - POSTGRES_DB=${POSTGRES_DB:-pingtower}
+    labels:
+      - "traefik.http.routers.statistics.rule=Host(`${DOMAIN:-localhost}`) && PathPrefix(`/statistics`)"
+      - "traefik.http.routers.statistics.entrypoints=web"
+    depends_on:
+      traefik:
+        condition: service_healthy
+      redpanda:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+networks:
+  pingtower:
+    driver: bridge
+
+volumes:
+  postgres_storage:
+  redpanda_data:
+  cassandra_data:

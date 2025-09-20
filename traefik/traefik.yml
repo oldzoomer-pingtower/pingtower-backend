@@ -1,0 +1,29 @@
+# Traefik Static Configuration
+api:
+  dashboard: true
+  insecure: true
+
+# Docker Configuration
+providers:
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    exposedByDefault: false
+    network: pingtower
+
+# Entry Points
+entryPoints:
+  web:
+    address: ":80"
+
+# Access Logs
+accessLog:
+  filePath: "/etc/traefik/access.log"
+  format: json
+
+# API and Dashboard
+api:
+  dashboard: true
+
+# Metrics (optional)
+metrics:
+  prometheus: {}
