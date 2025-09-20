@@ -81,6 +81,18 @@ build_service() {
 # Запуск всех сервисов
 start_all() {
     log_info "Запуск всех сервисов..."
+
+    # Проверка наличия .env файла
+    if [ ! -f .env ]; then
+        log_warning ".env файл не найден. Создаю из примера..."
+        cp .env.example .env
+    fi
+
+    # Загрузка переменных окружения
+    set -a
+    source .env 2>/dev/null || log_warning ".env файл не может быть прочитан"
+    set +a
+
     docker compose -f $COMPOSE_FILE -p $PROJECT_NAME up -d
     log_success "Все сервисы запущены"
 
@@ -127,6 +139,15 @@ show_status() {
     echo "  Cassandra:         localhost:9042"
     echo "  Redis:             localhost:6379"
     echo "  Kafka (RedPanda):  localhost:9092"
+    echo
+    log_info "Настройки из .env файла:"
+    if [ -f .env ]; then
+        echo "  Профиль Spring:    $(grep '^SPRING_PROFILES_ACTIVE=' .env 2>/dev/null | cut -d'=' -f2 || echo 'docker')"
+        echo "  Уровень логов:      $(grep '^LOG_LEVEL=' .env 2>/dev/null | cut -d'=' -f2 || echo 'INFO')"
+        echo "  Cassandra keyspace: $(grep '^CASSANDRA_KEYSPACE=' .env 2>/dev/null | cut -d'=' -f2 || echo 'pingtower_statistics')"
+    else
+        echo "  .env файл не найден - используйте 'make setup'"
+    fi
 }
 
 # Показать логи
