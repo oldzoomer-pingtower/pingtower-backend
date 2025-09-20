@@ -42,14 +42,70 @@
 3. **Запустите сервисы:**
 
    ```bash
+   # Используйте скрипт управления (рекомендуется)
+   ./docker-manage.sh start
+
+   # Или через docker compose напрямую
    docker compose up -d
    ```
 
 4. **Проверьте статус:**
 
    ```bash
+   # Используйте скрипт управления
+   ./docker-manage.sh status
+
+   # Или через docker compose напрямую
    docker compose ps
    ```
+
+5. **Доступ к сервисам:**
+
+   После успешного запуска все сервисы будут доступны. Подробную информацию о доступе к базам данных и сервисам смотрите в соответствующих разделах ниже.
+
+## Скрипт управления
+
+Проект включает удобный скрипт `docker-manage.sh` для упрощения работы с Docker окружением:
+
+### Основные команды
+
+```bash
+# Настройка
+./docker-manage.sh setup          # Создать .env файл из примера
+./docker-manage.sh start          # Запустить все сервисы
+./docker-manage.sh stop           # Остановить все сервисы
+./docker-manage.sh status         # Показать статус сервисов
+
+# Сборка
+./docker-manage.sh build          # Собрать все образы
+./docker-manage.sh build pingtower-pinger  # Собрать конкретный сервис
+
+# Логи
+./docker-manage.sh logs           # Логи всех сервисов
+./docker-manage.sh logs cassandra # Логи Cassandra
+./docker-manage.sh logs postgres  # Логи PostgreSQL
+
+# Доступ к контейнерам
+./docker-manage.sh exec cassandra cqlsh    # CQL shell для Cassandra
+./docker-manage.sh exec postgres psql -U pingtower  # PostgreSQL shell
+./docker-manage.sh exec redis redis-cli -a pingtower  # Redis CLI
+
+# Очистка
+./docker-manage.sh cleanup        # Полная очистка всех ресурсов
+./docker-manage.sh stop-clean     # Остановить с удалением данных
+
+# Справка
+./docker-manage.sh help           # Показать все доступные команды
+```
+
+### Преимущества использования скрипта
+
+- **Автоматическая проверка зависимостей** (Docker, Docker Compose)
+- **Цветной вывод** для лучшей читаемости
+- **Интеллектуальная настройка** .env файла
+- **Удобные команды** для работы с базами данных
+- **Безопасная очистка** с подтверждением
+- **Информативный статус** с доступом ко всем сервисам
 
 ## Структура проекта
 
@@ -57,6 +113,9 @@
 ├── Dockerfile              # Мульти-стадийная сборка для всех сервисов
 ├── compose.yml            # Docker Compose конфигурация
 ├── .env.example           # Пример переменных окружения
+├── .dockerignore          # Исключения для Docker
+├── docker-manage.sh       # Скрипт управления Docker окружением
+├── DOCKER_README.md       # Документация по Docker настройке
 ├── traefik/
 │   └── traefik.yml        # Конфигурация Traefik
 ├── config/                # Общие конфигурации
@@ -64,7 +123,7 @@
 ├── notificator/           # Сервис уведомлений
 ├── pinger/                # Сервис проверки доступности
 ├── settings-manager/      # Сервис управления настройками
-└── statistics/            # Сервис статистики
+└── statistics/            # Сервис статистики (использует Cassandra)
 ```
 
 ## Переменные окружения
@@ -76,44 +135,64 @@
 - `POSTGRES_PASSWORD` - пароль PostgreSQL (по умолчанию: pingtower)
 - `POSTGRES_DB` - база данных PostgreSQL (по умолчанию: pingtower)
 - `REDIS_PASSWORD` - пароль Redis (по умолчанию: pingtower)
-
-### Опциональные
-
 - `SPRING_PROFILES_ACTIVE` - профиль Spring (по умолчанию: docker)
+
+### Cassandra (для statistics сервиса)
+
+- `CASSANDRA_KEYSPACE` - keyspace для Cassandra (по умолчанию: pingtower_statistics)
+- `CASSANDRA_REPLICATION_FACTOR` - фактор репликации (по умолчанию: 1)
+
+### Kafka (RedPanda)
+
+- `KAFKA_BOOTSTRAP_SERVER` - адрес Kafka сервера (по умолчанию: redpanda:9092)
+
+### Логирование и производительность
+
 - `LOG_LEVEL` - уровень логирования (по умолчанию: INFO)
+- `LOG_FILE_PATH` - путь к файлам логов (по умолчанию: /app/logs)
+- `JAVA_OPTS` - настройки JVM для всех сервисов (по умолчанию: -Xmx512m -Xms256m)
+- `STATISTICS_JAVA_OPTS` - настройки JVM для statistics сервиса (по умолчанию: -Xmx1g -Xms512m)
 
 ## Сборка и запуск отдельных сервисов
 
 ### Сборка образа
 
 ```bash
-# Сборка всех сервисов
-docker compose build
+# Используйте скрипт управления (рекомендуется)
+./docker-manage.sh build pingtower-pinger
 
-# Сборка конкретного сервиса
+# Или через docker compose напрямую
 docker compose build pingtower-pinger
 ```
 
 ### Запуск сервисов
 
 ```bash
-# Запуск всех сервисов
+# Используйте скрипт управления (рекомендуется)
+./docker-manage.sh start
+
+# Или через docker compose напрямую
 docker compose up -d
 
 # Запуск конкретного сервиса
+./docker-manage.sh logs pingtower-pinger
 docker compose up -d pingtower-pinger
 
 # Запуск с логами
-docker compose up pingtower-pinger
+./docker-manage.sh logs pingtower-pinger
 ```
 
 ### Остановка сервисов
 
 ```bash
-# Остановка всех сервисов
+# Используйте скрипт управления (рекомендуется)
+./docker-manage.sh stop
+
+# Или через docker compose напрямую
 docker compose down
 
-# Остановка с удалением volumes
+# Остановка с удалением volumes (включая данные PostgreSQL и Cassandra)
+./docker-manage.sh stop-clean
 docker compose down -v
 ```
 
@@ -132,13 +211,18 @@ docker compose down -v
 ### Логи сервисов
 
 ```bash
-# Логи всех сервисов
-docker compose logs
+# Используйте скрипт управления (рекомендуется)
+./docker-manage.sh logs pingtower-pinger
 
-# Логи конкретного сервиса
+# Или через docker compose напрямую
 docker compose logs pingtower-pinger
 
+# Логи всех сервисов
+./docker-manage.sh logs
+docker compose logs
+
 # Следить за логами в реальном времени
+./docker-manage.sh logs pingtower-pinger
 docker compose logs -f pingtower-pinger
 ```
 
@@ -252,13 +336,18 @@ docker compose -f compose.yml up --build pingtower-pinger
 ### Отладка
 
 ```bash
-# Вход в контейнер
+# Используйте скрипт управления (рекомендуется)
+./docker-manage.sh exec pingtower-pinger sh
+
+# Или через docker compose напрямую
 docker compose exec pingtower-pinger sh
 
 # Просмотр процессов
+./docker-manage.sh exec pingtower-pinger ps aux
 docker compose exec pingtower-pinger ps aux
 
 # Проверка переменных окружения
+./docker-manage.sh exec pingtower-pinger env
 docker compose exec pingtower-pinger env
 ```
 
@@ -338,16 +427,16 @@ docker compose up -d cassandra
 ## Обновление
 
 ```bash
-# Остановить сервисы
-docker compose down
-
-# Получить обновления
+# Используйте скрипт управления (рекомендуется)
+./docker-manage.sh stop
 git pull
+./docker-manage.sh build
+./docker-manage.sh start
 
-# Пересобрать образы
+# Или через docker compose напрямую
+docker compose down
+git pull
 docker compose build --no-cache
-
-# Запустить сервисы
 docker compose up -d
 ```
 
