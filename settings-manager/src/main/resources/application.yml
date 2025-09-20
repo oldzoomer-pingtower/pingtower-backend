@@ -4,7 +4,7 @@ spring:
 
   # PostgreSQL Database Configuration
   datasource:
-    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/pingtower_settings}
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost:5432}/${POSTGRES_DB:pingtower_settings}
     username: ${DATABASE_USERNAME:pingtower_user}
     password: ${DATABASE_PASSWORD:pingtower_password}
     driver-class-name: org.postgresql.Driver
