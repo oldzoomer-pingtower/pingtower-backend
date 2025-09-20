@@ -8,7 +8,6 @@ providers:
   docker:
     endpoint: "unix:///var/run/docker.sock"
     exposedByDefault: false
-    network: pingtower
   file:
     filename: "/etc/traefik/swagger.yml"
 
