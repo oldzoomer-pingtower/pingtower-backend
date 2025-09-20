@@ -140,6 +140,8 @@ services:
     labels:
       - "traefik.http.routers.pinger.rule=Host(`${DOMAIN:-localhost}`) && PathPrefix(`/pinger`)"
       - "traefik.http.routers.pinger.entrypoints=web"
+      - "traefik.enable=true"
+      - "traefik.http.services.pinger.loadbalancer.server.port=8080"
     depends_on:
       redpanda:
         condition: service_healthy
