@@ -128,6 +128,7 @@ services:
       - "8080"
     restart: unless-stopped
     environment:
+      - SERVER_PORT=8080
       - SPRING_PROFILES_ACTIVE=docker
       - KAFKA_BOOTSTRAP_SERVER=redpanda:9092
       - REDIS_HOST=redis
@@ -169,6 +170,7 @@ services:
       - "8080"
     restart: unless-stopped
     environment:
+      - SERVER_PORT=8080
       - SPRING_PROFILES_ACTIVE=docker
       - KAFKA_BOOTSTRAP_SERVER=redpanda:9092
       - REDIS_HOST=redis
@@ -208,6 +210,7 @@ services:
       - "8080"
     restart: unless-stopped
     environment:
+      - SERVER_PORT=8080
       - SPRING_PROFILES_ACTIVE=docker
       - POSTGRES_HOST=postgres:5432
       - POSTGRES_USER=${POSTGRES_USER:-pingtower}
@@ -240,6 +243,7 @@ services:
       - "8080"
     restart: unless-stopped
     environment:
+      - SERVER_PORT=8080
       - SPRING_PROFILES_ACTIVE=docker
       - KAFKA_BOOTSTRAP_SERVER=redpanda:9092
       - REDIS_HOST=redis
