@@ -184,6 +184,8 @@ services:
     labels:
       - "traefik.http.routers.notificator.rule=Host(`${DOMAIN:-localhost}`) && PathPrefix(`/notificator`)"
       - "traefik.http.routers.notificator.entrypoints=web"
+      - "traefik.enable=true"
+      - "traefik.http.services.notificator.loadbalancer.server.port=8080"
     depends_on:
       redpanda:
         condition: service_healthy
