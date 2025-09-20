@@ -3,39 +3,38 @@ http:
   routers:
     # Swagger UI для всех сервисов
     swagger-pinger:
-      rule: "Host(`${DOMAIN:-localhost}`) && PathPrefix(`/swagger/pinger`)"
+      rule: "Host(`${DOMAIN:-localhost}`) && Path(`/swagger/pinger`)"
       entryPoints:
         - web
       service: pinger-swagger
       middlewares:
-        - swagger-strip-prefix
+        - swagger-rewrite-path
         - swagger-add-headers
 
     swagger-notificator:
-      rule: "Host(`${DOMAIN:-localhost}`) && PathPrefix(`/swagger/notificator`)"
+      rule: "Host(`${DOMAIN:-localhost}`) && Path(`/swagger/notificator`)"
       entryPoints:
         - web
       service: notificator-swagger
       middlewares:
-        - swagger-strip-prefix
+        - swagger-rewrite-path
         - swagger-add-headers
 
     swagger-settings:
-      rule: "Host(`${DOMAIN:-localhost}`) && PathPrefix(`/swagger/settings`)"
+      rule: "Host(`${DOMAIN:-localhost}`) && Path(`/swagger/settings`)"
       entryPoints:
         - web
       service: settings-swagger
       middlewares:
-        - swagger-strip-prefix
+        - swagger-rewrite-path
         - swagger-add-headers
 
     swagger-statistics:
-      rule: "Host(`${DOMAIN:-localhost}`) && PathPrefix(`/swagger/statistics`)"
+      rule: "Host(`${DOMAIN:-localhost}`) && Path(`/swagger/statistics`)"
       entryPoints:
         - web
       service: statistics-swagger
       middlewares:
-        - swagger-strip-prefix
         - swagger-rewrite-path
         - swagger-add-headers
 
