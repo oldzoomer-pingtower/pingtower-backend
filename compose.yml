@@ -261,6 +261,8 @@ services:
     labels:
       - "traefik.http.routers.statistics.rule=Host(`${DOMAIN:-localhost}`) && PathPrefix(`/statistics`)"
       - "traefik.http.routers.statistics.entrypoints=web"
+      - "traefik.enable=true"
+      - "traefik.http.services.statistics.loadbalancer.server.port=8080"
     depends_on:
       redpanda:
         condition: service_healthy
