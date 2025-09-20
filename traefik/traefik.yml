@@ -19,7 +19,3 @@ entryPoints:
 accessLog:
   filePath: "/etc/traefik/access.log"
   format: json
-
-# Metrics (optional)
-metrics:
-  prometheus: {}
