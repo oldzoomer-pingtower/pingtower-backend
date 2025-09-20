@@ -43,6 +43,14 @@ spring:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
 
+  # OAuth2 / Keycloak Configuration
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${JWT_ISSUER_URI:http://localhost:80/realms/pingtower}
+          jwk-set-uri: ${JWT_JWK_SET_URI:http://localhost:80/realms/pingtower/protocol/openid-connect/certs}
+
 # Notification Configuration
 notificator:
   grouping:
@@ -54,3 +62,7 @@ notificator:
       token: ${TELEGRAM_BOT_TOKEN:your-telegram-bot-token}
   webhook:
     url: ${WEBHOOK_URL:https://example.com/webhook}
+
+# Server Configuration
+server:
+  port: ${SERVER_PORT:8082}
