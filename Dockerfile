@@ -64,6 +64,11 @@ ARG SERVICE_NAME
 ENV APP_HOME=$BUILD_HOME
 
 #
+# Install curl for healthchecks
+#
+RUN apk add --no-cache curl
+
+#
 # Copy the jar file and name it app.jar
 #
 COPY --from=build-image $APP_HOME/${SERVICE_NAME}/build/libs/${SERVICE_NAME}-0.0.1-SNAPSHOT.jar app.jar
