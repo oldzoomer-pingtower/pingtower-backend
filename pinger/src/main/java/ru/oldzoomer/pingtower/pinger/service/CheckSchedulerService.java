@@ -50,9 +50,9 @@ public class CheckSchedulerService {
         
         // Планирование задачи с указанной частотой
         ScheduledFuture<?> scheduledTask = executorService.scheduleAtFixedRate(
-                task, 
-                0, 
-                config.getFrequency(), 
+                task,
+                0,
+                config.getFrequency(),
                 TimeUnit.MILLISECONDS
         );
         

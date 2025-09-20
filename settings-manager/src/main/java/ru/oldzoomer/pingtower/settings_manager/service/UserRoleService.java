@@ -5,6 +5,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.oldzoomer.pingtower.settings_manager.entity.UserRoleEntity;
+import ru.oldzoomer.pingtower.settings_manager.exception.EntityNotFoundException;
 import ru.oldzoomer.pingtower.settings_manager.repository.UserRoleRepository;
 
 import java.time.LocalDateTime;
@@ -23,14 +24,22 @@ public class UserRoleService {
 
     @Cacheable(value = "userRoles", key = "#userId")
     public List<UUID> getRolesForUser(UUID userId) {
-        return userRoleRepository.findByUserId(userId).stream()
+        List<UserRoleEntity> userRoles = userRoleRepository.findByUserId(userId);
+        if (userRoles.isEmpty()) {
+            throw new EntityNotFoundException("User not found with id: " + userId);
+        }
+        return userRoles.stream()
                 .map(UserRoleEntity::getRoleId)
                 .collect(Collectors.toList());
     }
 
     @Cacheable(value = "userRoles", key = "#roleId")
     public List<UUID> getUsersWithRole(UUID roleId) {
-        return userRoleRepository.findByRoleId(roleId).stream()
+        List<UserRoleEntity> userRoles = userRoleRepository.findByRoleId(roleId);
+        if (userRoles.isEmpty()) {
+            throw new EntityNotFoundException("Role not found with id: " + roleId);
+        }
+        return userRoles.stream()
                 .map(UserRoleEntity::getUserId)
                 .collect(Collectors.toList());
     }
@@ -55,6 +64,10 @@ public class UserRoleService {
     @CacheEvict(value = "userRoles", key = "#userId")
     @Transactional
     public void removeRoleFromUser(UUID userId, UUID roleId) {
+        List<UserRoleEntity> userRoles = userRoleRepository.findByUserIdAndRoleId(userId, roleId);
+        if (userRoles.isEmpty()) {
+            throw new EntityNotFoundException("Role assignment not found for user " + userId + " and role " + roleId);
+        }
         userRoleRepository.deleteByUserIdAndRoleId(userId, roleId);
     }
 
@@ -62,6 +75,9 @@ public class UserRoleService {
     @Transactional
     public void removeAllRolesFromUser(UUID userId) {
         List<UserRoleEntity> userRoles = userRoleRepository.findByUserId(userId);
+        if (userRoles.isEmpty()) {
+            throw new EntityNotFoundException("User not found with id: " + userId);
+        }
         userRoleRepository.deleteAll(userRoles);
     }
 }

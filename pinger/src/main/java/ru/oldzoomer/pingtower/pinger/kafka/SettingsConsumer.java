@@ -63,23 +63,30 @@ public class SettingsConsumer {
                         @SuppressWarnings("unchecked")
                         Map<String, Object> configMap = (Map<String, Object>) value;
                         
-                        CheckConfiguration config = new CheckConfiguration();
-                        config.setId((String) configMap.get("id"));
-                        config.setType((String) configMap.get("type"));
-                        config.setResourceUrl((String) configMap.get("resourceUrl"));
-                        config.setFrequency(((Number) configMap.get("frequency")).longValue());
-                        config.setTimeout(((Number) configMap.get("timeout")).intValue());
-                        config.setExpectedStatusCode((Integer) configMap.get("expectedStatusCode"));
-                        config.setExpectedResponseTime(((Number) configMap.get("expectedResponseTime")).longValue());
-                        config.setValidateSsl((Boolean) configMap.get("validateSsl"));
-                        
-                        // Обновляем хранилище конфигураций
-                        if ("CREATE".equals(action) || "UPDATE".equals(action)) {
+                        if ("DELETE".equals(action)) {
+                            // Для DELETE action достаточно только ID
+                            String checkId = (String) configMap.get("id");
+                            if (checkId != null) {
+                                checkConfigurations.remove(checkId);
+                                log.info("Removed check configuration: {}", checkId);
+                            } else {
+                                log.warn("DELETE action requires 'id' field in value");
+                            }
+                        } else {
+                            // Для CREATE и UPDATE создаем полный объект CheckConfiguration
+                            CheckConfiguration config = new CheckConfiguration();
+                            config.setId((String) configMap.get("id"));
+                            config.setType((String) configMap.get("type"));
+                            config.setResourceUrl((String) configMap.get("resourceUrl"));
+                            config.setFrequency(((Number) configMap.get("frequency")).longValue());
+                            config.setTimeout(((Number) configMap.get("timeout")).intValue());
+                            config.setExpectedStatusCode((Integer) configMap.get("expectedStatusCode"));
+                            config.setExpectedResponseTime(((Number) configMap.get("expectedResponseTime")).longValue());
+                            config.setValidateSsl((Boolean) configMap.get("validateSsl"));
+                            
+                            // Обновляем хранилище конфигураций
                             checkConfigurations.put(config.getId(), config);
                             log.info("Added/Updated check configuration: {}", config.getId());
-                        } else if ("DELETE".equals(action)) {
-                            checkConfigurations.remove(config.getId());
-                            log.info("Removed check configuration: {}", config.getId());
                         }
                     }
                 } else {

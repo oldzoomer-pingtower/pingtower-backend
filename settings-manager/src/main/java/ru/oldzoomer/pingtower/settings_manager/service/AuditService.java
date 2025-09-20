@@ -3,6 +3,8 @@ package ru.oldzoomer.pingtower.settings_manager.service;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import lombok.RequiredArgsConstructor;
 import ru.oldzoomer.pingtower.settings_manager.entity.AuditLogEntity;
 import ru.oldzoomer.pingtower.settings_manager.repository.AuditLogRepository;
 
@@ -11,13 +13,10 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class AuditService {
 
     private final AuditLogRepository auditLogRepository;
-
-    public AuditService(AuditLogRepository auditLogRepository) {
-        this.auditLogRepository = auditLogRepository;
-    }
 
     @Cacheable(value = "auditLogs", key = "#settingId")
     public List<AuditLogEntity> getAuditLogForSetting(UUID settingId) {

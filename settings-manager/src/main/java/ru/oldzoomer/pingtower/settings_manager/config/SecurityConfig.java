@@ -12,14 +12,14 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(authz -> authz
                 .requestMatchers("/api/v1/settings/**").hasRole("ADMIN")
                 .requestMatchers("/api/v1/users/**").hasRole("ADMIN")
                 .requestMatchers("/api/v1/roles/**").hasRole("ADMIN")
                 .requestMatchers("/api/v1/user-roles/**").hasRole("ADMIN")
-                .anyRequest().authenticated()
+                .anyRequest().permitAll()
             )
             .oauth2ResourceServer(oauth2 -> oauth2
                 .jwt(jwt -> jwt.jwtAuthenticationConverter(new KeycloakJwtAuthenticationConverter()))

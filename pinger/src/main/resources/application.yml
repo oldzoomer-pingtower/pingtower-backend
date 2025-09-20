@@ -36,14 +36,26 @@ spring:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
 
-# HTTP Client Configuration
-pinger:
-  http:
-    connect-timeout: 5000
-    read-timeout: 10000
-    connection-request-timeout: 2000
+  # HTTP Client Configuration
+  pinger:
+    http:
+      connect-timeout: 5000
+      read-timeout: 10000
+      connection-request-timeout: 2000
+
+  # OAuth2 / Keycloak Configuration
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${JWT_ISSUER_URI:http://localhost:80/realms/pingtower}
+          jwk-set-uri: ${JWT_JWK_SET_URI:http://localhost:80/realms/pingtower/protocol/openid-connect/certs}
 
 # Logging Configuration
 logging:
   level:
     ru.oldzoomer.pingtower.pinger: DEBUG
+
+# Server Configuration
+server:
+  port: ${SERVER_PORT:8081}

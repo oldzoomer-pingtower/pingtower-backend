@@ -1,33 +1,51 @@
 package ru.oldzoomer.pingtower.statistics.controller;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import ru.oldzoomer.pingtower.statistics.dto.CheckResult;
 import ru.oldzoomer.pingtower.statistics.service.StatisticsRetrievalService;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/statistics")
 @RequiredArgsConstructor
+@Tag(name = "Statistics", description = "Контроллер для работы со статистикой мониторинга")
 public class StatisticsController {
     private final StatisticsRetrievalService statisticsRetrievalService;
     
-    /**
-     * Получение последних результатов проверки
-     * @param checkId идентификатор проверки
-     * @return последние результаты проверки
-     */
+    @Operation(
+        summary = "Получение последних результатов проверки",
+        description = "Получить последний результат проверки по идентификатору проверки"
+    )
+    @ApiResponse(
+        responseCode = "200",
+        description = "Последний результат проверки успешно получен",
+        content = @Content(
+            mediaType = "application/json",
+            schema = @Schema(implementation = CheckResult.class)
+        )
+    )
+    @ApiResponse(
+        responseCode = "404",
+        description = "Результаты проверки не найдены"
+    )
     @GetMapping("/checks/{checkId}/latest")
-    public ResponseEntity<CheckResult> getLatestCheckResult(@PathVariable String checkId) {
+    public ResponseEntity<CheckResult> getLatestCheckResult(
+            @Parameter(description = "Идентификатор проверки", example = "check-12345")
+            @PathVariable String checkId) {
         try {
-            // Получаем из сервиса
             CheckResult result = statisticsRetrievalService.getLatestCheckResult(checkId);
             if (result != null) {
                 return ResponseEntity.ok(result);
@@ -40,21 +58,29 @@ public class StatisticsController {
         }
     }
     
-    /**
-     * Получение истории результатов проверки
-     * @param checkId идентификатор проверки
-     * @param from начальная дата
-     * @param to конечная дата
-     * @param limit ограничение на количество записей
-     * @param offset смещение
-     * @return история результатов проверки
-     */
+    @Operation(
+        summary = "Получение истории результатов проверки",
+        description = "Получить историю результатов проверки с возможностью фильтрации по времени"
+    )
+    @ApiResponse(
+        responseCode = "200",
+        description = "История результатов проверки успешно получена",
+        content = @Content(
+            mediaType = "application/json",
+            schema = @Schema(implementation = CheckResult.class, type = "array")
+        )
+    )
     @GetMapping("/checks/{checkId}/history")
     public ResponseEntity<List<CheckResult>> getCheckHistory(
+            @Parameter(description = "Идентификатор проверки", example = "check-12345")
             @PathVariable String checkId,
+            @Parameter(description = "Начальная дата для фильтрации", example = "2024-01-15T10:30:00")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
+            @Parameter(description = "Конечная дата для фильтрации", example = "2024-01-16T10:30:00")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to,
+            @Parameter(description = "Ограничение на количество записей", example = "100")
             @RequestParam(defaultValue = "100") int limit,
+            @Parameter(description = "Смещение для пагинации", example = "0")
             @RequestParam(defaultValue = "0") int offset) {
         try {
             List<CheckResult> history = statisticsRetrievalService.getCheckHistory(checkId, from, to, limit, offset);
@@ -65,22 +91,29 @@ public class StatisticsController {
         }
     }
     
-    /**
-     * Получение агрегированных данных по проверке
-     * @param checkId идентификатор проверки
-     * @param interval интервал агрегации
-     * @param from начальная дата
-     * @param to конечная дата
-     * @return агрегированные данные
-     */
+    @Operation(
+        summary = "Получение агрегированных данных по проверке",
+        description = "Получить агрегированные данные по проверке за указанный интервал времени"
+    )
+    @ApiResponse(
+        responseCode = "200",
+        description = "Агрегированные данные успешно получены"
+    )
+    @ApiResponse(
+        responseCode = "404",
+        description = "Данные для агрегации не найдены"
+    )
     @GetMapping("/checks/{checkId}/aggregated")
     public ResponseEntity<Object> getAggregatedData(
+            @Parameter(description = "Идентификатор проверки", example = "check-12345")
             @PathVariable String checkId,
+            @Parameter(description = "Интервал агрегации", example = "hourly")
             @RequestParam String interval,
+            @Parameter(description = "Начальная дата для агрегации", example = "2024-01-15T10:30:00")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
+            @Parameter(description = "Конечная дата для агрегации", example = "2024-01-16T10:30:00")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to) {
         try {
-            // Получаем из сервиса
             Object aggregatedData = statisticsRetrievalService.getAggregatedData(checkId, interval, from, to);
             if (aggregatedData != null) {
                 return ResponseEntity.ok(aggregatedData);
@@ -93,10 +126,14 @@ public class StatisticsController {
         }
     }
     
-    /**
-     * Получение данных для дашборда
-     * @return данные для дашборда
-     */
+    @Operation(
+        summary = "Получение данных для дашборда",
+        description = "Получить агрегированные данные для отображения на дашборде"
+    )
+    @ApiResponse(
+        responseCode = "200",
+        description = "Данные для дашборда успешно получены"
+    )
     @GetMapping("/dashboard")
     public ResponseEntity<Object> getDashboardData() {
         try {

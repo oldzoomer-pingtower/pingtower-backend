@@ -1,13 +1,14 @@
 package ru.oldzoomer.pingtower.settings_manager.entity;
 
-import lombok.Data;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-@Data
+@Getter
+@Setter
 @Entity
 @Table(name = "user_roles")
 public class UserRoleEntity {

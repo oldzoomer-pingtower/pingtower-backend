@@ -33,7 +33,7 @@ public class HttpCheckExecutor implements CheckExecutor {
         long timeToFirstByte = 0;
         
         try {
-            URL url = new URI(config.getResourceUrl()).toURL();
+            URL url = createURL(config.getResourceUrl());
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             
             // Установка таймаутов
@@ -60,11 +60,13 @@ public class HttpCheckExecutor implements CheckExecutor {
             result.setHttpStatusCode(responseCode);
             
             // Проверка кода ответа
-            if (config.getExpectedStatusCode() != null && responseCode != config.getExpectedStatusCode()) {
-                result.setStatus("DOWN");
-                result.setErrorMessage("Expected status code " + config.getExpectedStatusCode() + ", but got " + responseCode);
-            } else if (responseCode >= 200 && responseCode < 300) {
+            if (responseCode >= 200 && responseCode < 300) {
                 result.setStatus("UP");
+                // Проверка на соответствие ожидаемому коду (если указан)
+                if (config.getExpectedStatusCode() != null && responseCode != config.getExpectedStatusCode()) {
+                    result.setStatus("DOWN");
+                    result.setErrorMessage("Expected status code " + config.getExpectedStatusCode() + ", but got " + responseCode);
+                }
             } else {
                 result.setStatus("DOWN");
                 result.setErrorMessage("HTTP error code: " + responseCode);
@@ -84,11 +86,13 @@ public class HttpCheckExecutor implements CheckExecutor {
             long endTime = System.currentTimeMillis();
             result.setResponseTime(endTime - startTime);
             
-            // Установка метрик
-            CheckResult.Metrics metrics = new CheckResult.Metrics();
-            metrics.setConnectionTime(connectionTime);
-            metrics.setTimeToFirstByte(timeToFirstByte);
-            result.setMetrics(metrics);
+            // Установка метрик (если еще не установлены)
+            if (result.getMetrics() == null) {
+                CheckResult.Metrics metrics = new CheckResult.Metrics();
+                metrics.setConnectionTime(connectionTime);
+                metrics.setTimeToFirstByte(timeToFirstByte);
+                result.setMetrics(metrics);
+            }
         }
         
         return result;
@@ -97,6 +101,16 @@ public class HttpCheckExecutor implements CheckExecutor {
     @Override
     public boolean supports(String type) {
         return "HTTP".equalsIgnoreCase(type) || "HTTPS".equalsIgnoreCase(type);
+    }
+
+    /**
+     * Создание URL из строки (метод для тестирования)
+     * @param urlString строка URL
+     * @return объект URL
+     * @throws Exception если URL некорректен
+     */
+    protected URL createURL(String urlString) throws Exception {
+        return new URI(urlString).toURL();
     }
     
     /**
@@ -107,6 +121,12 @@ public class HttpCheckExecutor implements CheckExecutor {
      */
     private void checkSslCertificate(HttpsURLConnection connection, CheckResult result, boolean validateSsl) {
         try {
+            // Инициализация метрик, если они еще не созданы
+            if (result.getMetrics() == null) {
+                CheckResult.Metrics metrics = new CheckResult.Metrics();
+                result.setMetrics(metrics);
+            }
+            
             // Получение сертификатов
             Certificate[] certificates = connection.getServerCertificates();
             
@@ -123,14 +143,16 @@ public class HttpCheckExecutor implements CheckExecutor {
                     // Установка даты истечения сертификата
                     result.getMetrics().setSslExpirationDate(x509Cert.getNotAfter().toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDateTime());
                     
-                    log.debug("SSL certificate is valid for {}: expires on {}", 
-                            connection.getURL().getHost(), 
+                    log.debug("SSL certificate is valid for {}: expires on {}",
+                            connection.getURL().getHost(),
                             x509Cert.getNotAfter());
                 }
             }
         } catch (Exception e) {
             // Другие ошибки SSL
-            result.getMetrics().setSslValid(false);
+            if (result.getMetrics() != null) {
+                result.getMetrics().setSslValid(false);
+            }
             result.setErrorMessage("SSL certificate error: " + e.getMessage());
             log.error("SSL certificate error for {}: {}", connection.getURL().getHost(), e.getMessage());
         }

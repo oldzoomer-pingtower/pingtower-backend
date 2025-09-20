@@ -19,6 +19,11 @@ public class CheckResultProducer {
      * @param checkResult результат проверки
      */
     public void sendCheckResult(CheckResult checkResult) {
+        if (checkResult == null) {
+            log.warn("Attempted to send null check result to Kafka");
+            return;
+        }
+        
         try {
             kafkaTemplate.send(CHECK_RESULTS_TOPIC, checkResult.getCheckId(), checkResult);
             log.info("Sent check result to Kafka topic: {} for checkId: {}", CHECK_RESULTS_TOPIC, checkResult.getCheckId());

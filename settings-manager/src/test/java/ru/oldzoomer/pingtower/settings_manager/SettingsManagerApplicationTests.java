@@ -1,12 +1,8 @@
 package ru.oldzoomer.pingtower.settings_manager;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 
-@Import(TestcontainersConfiguration.class)
-@SpringBootTest
-class SettingsManagerApplicationTests {
+class SettingsManagerApplicationTests extends SimpleTestConfiguration {
 
 	@Test
 	void contextLoads() {

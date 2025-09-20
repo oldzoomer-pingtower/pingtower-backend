@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.oldzoomer.pingtower.settings_manager.dto.User;
 import ru.oldzoomer.pingtower.settings_manager.entity.UserEntity;
+import ru.oldzoomer.pingtower.settings_manager.exception.EntityNotFoundException;
 import ru.oldzoomer.pingtower.settings_manager.repository.UserRepository;
 
 import java.time.LocalDateTime;
@@ -72,11 +73,11 @@ public class UserService {
             UserEntity entity = existingEntity.get();
             
             // Проверим, что нового username или email нет у других пользователей
-            if (!entity.getUsername().equals(user.getUsername()) && 
+            if (!entity.getUsername().equals(user.getUsername()) &&
                 userRepository.existsByUsername(user.getUsername())) {
                 throw new RuntimeException("User with username " + user.getUsername() + " already exists");
             }
-            if (!entity.getEmail().equals(user.getEmail()) && 
+            if (!entity.getEmail().equals(user.getEmail()) &&
                 userRepository.existsByEmail(user.getEmail())) {
                 throw new RuntimeException("User with email " + user.getEmail() + " already exists");
             }
@@ -90,7 +91,7 @@ public class UserService {
             UserEntity updatedEntity = userRepository.save(entity);
             return convertToDto(updatedEntity);
         } else {
-            throw new RuntimeException("User not found with id: " + id);
+            throw new EntityNotFoundException("User not found with id: " + id);
         }
     }
 
@@ -100,7 +101,7 @@ public class UserService {
         if (userRepository.existsById(id)) {
             userRepository.deleteById(id);
         } else {
-            throw new RuntimeException("User not found with id: " + id);
+            throw new EntityNotFoundException("User not found with id: " + id);
         }
     }
 

@@ -13,7 +13,8 @@ dependencies {
     testImplementation 'org.springframework.security:spring-security-test'
     testImplementation 'org.testcontainers:cassandra'
     testImplementation 'org.testcontainers:junit-jupiter'
-    testImplementation 'org.testcontainers:kafka'
+    testImplementation 'org.testcontainers:redpanda'
+    testImplementation 'com.redis:testcontainers-redis'
 
     implementation "org.mapstruct:mapstruct:${mapstructVersion}"
     implementation "com.github.therapi:therapi-runtime-javadoc:${therapiVersion}"

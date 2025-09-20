@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.oldzoomer.pingtower.settings_manager.dto.Setting;
 import ru.oldzoomer.pingtower.settings_manager.entity.SettingEntity;
+import ru.oldzoomer.pingtower.settings_manager.exception.EntityNotFoundException;
 import ru.oldzoomer.pingtower.settings_manager.repository.SettingRepository;
 
 import java.time.LocalDateTime;
@@ -77,7 +78,7 @@ public class SettingService {
             SettingEntity updatedEntity = settingRepository.save(entity);
             return convertToDto(updatedEntity);
         } else {
-            throw new RuntimeException("Setting not found: " + module + "." + key);
+            throw new EntityNotFoundException("Setting not found: " + module + "." + key);
         }
     }
 
@@ -93,7 +94,7 @@ public class SettingService {
         if (existingEntity.isPresent()) {
             settingRepository.delete(existingEntity.get());
         } else {
-            throw new RuntimeException("Setting not found: " + module + "." + key);
+            throw new EntityNotFoundException("Setting not found: " + module + "." + key);
         }
     }
 
