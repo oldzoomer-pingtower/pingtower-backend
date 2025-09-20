@@ -1,7 +1,7 @@
 # Traefik Static Configuration
 api:
-  dashboard: true
-  insecure: true
+  dashboard: false
+  insecure: false
 
 # Docker Configuration
 providers:
@@ -19,10 +19,6 @@ entryPoints:
 accessLog:
   filePath: "/etc/traefik/access.log"
   format: json
-
-# API and Dashboard
-api:
-  dashboard: true
 
 # Metrics (optional)
 metrics:
