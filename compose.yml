@@ -141,10 +141,6 @@ services:
       - KAFKA_BOOTSTRAP_SERVERS=redpanda:29092
       - REDIS_HOST=redis
       - REDIS_PASSWORD=${REDIS_PASSWORD:-pingtower}
-      - POSTGRES_HOST=postgres:5432
-      - POSTGRES_USER=${POSTGRES_USER:-pingtower}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-pingtower}
-      - POSTGRES_DB=${POSTGRES_DB:-pingtower}
     labels:
       - "traefik.http.routers.pinger.rule=Host(`${DOMAIN:-localhost}`) && PathPrefix(`/pinger`)"
       - "traefik.http.routers.pinger.entrypoints=web"
