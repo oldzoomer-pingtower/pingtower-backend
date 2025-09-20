@@ -140,8 +140,6 @@ services:
       - "traefik.http.routers.pinger.rule=Host(`${DOMAIN:-localhost}`) && PathPrefix(`/pinger`)"
       - "traefik.http.routers.pinger.entrypoints=web"
     depends_on:
-      traefik:
-        condition: service_healthy
       redpanda:
         condition: service_healthy
       postgres:
@@ -183,8 +181,6 @@ services:
       - "traefik.http.routers.notificator.rule=Host(`${DOMAIN:-localhost}`) && PathPrefix(`/notificator`)"
       - "traefik.http.routers.notificator.entrypoints=web"
     depends_on:
-      traefik:
-        condition: service_healthy
       redpanda:
         condition: service_healthy
       postgres:
@@ -221,8 +217,6 @@ services:
       - "traefik.http.routers.settings.rule=Host(`${DOMAIN:-localhost}`) && PathPrefix(`/settings`)"
       - "traefik.http.routers.settings.entrypoints=web"
     depends_on:
-      traefik:
-        condition: service_healthy
       postgres:
         condition: service_healthy
 
@@ -258,8 +252,6 @@ services:
       - "traefik.http.routers.statistics.rule=Host(`${DOMAIN:-localhost}`) && PathPrefix(`/statistics`)"
       - "traefik.http.routers.statistics.entrypoints=web"
     depends_on:
-      traefik:
-        condition: service_healthy
       redpanda:
         condition: service_healthy
       postgres:
