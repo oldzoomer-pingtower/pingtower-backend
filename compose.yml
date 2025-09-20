@@ -142,6 +142,12 @@ services:
       - "traefik.http.routers.pinger.entrypoints=web"
       - "traefik.enable=true"
       - "traefik.http.services.pinger.loadbalancer.server.port=8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      start_period: 120s
+      interval: 30s
+      timeout: 10s
+      retries: 5
     depends_on:
       redpanda:
         condition: service_healthy
@@ -186,6 +192,12 @@ services:
       - "traefik.http.routers.notificator.entrypoints=web"
       - "traefik.enable=true"
       - "traefik.http.services.notificator.loadbalancer.server.port=8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      start_period: 120s
+      interval: 30s
+      timeout: 10s
+      retries: 5
     depends_on:
       redpanda:
         condition: service_healthy
@@ -225,12 +237,18 @@ services:
       - "traefik.http.routers.settings.entrypoints=web"
       - "traefik.enable=true"
       - "traefik.http.services.settings.loadbalancer.server.port=8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      start_period: 120s
+      interval: 30s
+      timeout: 10s
+      retries: 5
     depends_on:
       postgres:
         condition: service_healthy
 
   # Сервис статистики и агрегации данных
-  # Основные зависимости: PostgreSQL, Redis, Kafka
+  # Основные зависимости: PostgreSQL, Redis, Kafka, Cassandra
   pingtower-statistics:
     image: pingtower/statistics:latest
     container_name: pingtower-statistics
@@ -263,6 +281,12 @@ services:
       - "traefik.http.routers.statistics.entrypoints=web"
       - "traefik.enable=true"
       - "traefik.http.services.statistics.loadbalancer.server.port=8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      start_period: 120s
+      interval: 30s
+      timeout: 10s
+      retries: 5
     depends_on:
       redpanda:
         condition: service_healthy
