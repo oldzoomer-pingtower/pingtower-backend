@@ -45,9 +45,8 @@ services:
       - CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch
     volumes:
       - cassandra_data:/var/lib/cassandra
-      - ./cassandra-init:/cassandra-init:ro
     healthcheck:
-      test: ["CMD", "cqlsh", "-e", "DESCRIBE KEYSPACES"]
+      test: ["CMD-SHELL", "[ $$(nodetool statusgossip) = running ]"]
       start_period: 60s
       interval: 30s
       timeout: 10s
