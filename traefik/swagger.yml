@@ -6,7 +6,7 @@ http:
       rule: "Host(`${DOMAIN:-localhost}`) && Path(`/swagger/pinger`)"
       entryPoints:
         - web
-      service: pinger-swagger
+      service: pinger@docker
       middlewares:
         - swagger-rewrite-path
         - swagger-add-headers
@@ -15,7 +15,7 @@ http:
       rule: "Host(`${DOMAIN:-localhost}`) && Path(`/swagger/notificator`)"
       entryPoints:
         - web
-      service: notificator-swagger
+      service: notificator@docker
       middlewares:
         - swagger-rewrite-path
         - swagger-add-headers
@@ -24,7 +24,7 @@ http:
       rule: "Host(`${DOMAIN:-localhost}`) && Path(`/swagger/settings`)"
       entryPoints:
         - web
-      service: settings-swagger
+      service: settings@docker
       middlewares:
         - swagger-rewrite-path
         - swagger-add-headers
@@ -33,31 +33,10 @@ http:
       rule: "Host(`${DOMAIN:-localhost}`) && Path(`/swagger/statistics`)"
       entryPoints:
         - web
-      service: statistics-swagger
+      service: statistics@docker
       middlewares:
         - swagger-rewrite-path
         - swagger-add-headers
-
-  services:
-    pinger-swagger:
-      loadBalancer:
-        servers:
-          - url: "http://pingtower-pinger:8080"
-
-    notificator-swagger:
-      loadBalancer:
-        servers:
-          - url: "http://pingtower-notificator:8080"
-
-    settings-swagger:
-      loadBalancer:
-        servers:
-          - url: "http://pingtower-settings-manager:8080"
-
-    statistics-swagger:
-      loadBalancer:
-        servers:
-          - url: "http://pingtower-statistics:8080"
 
   middlewares:
     swagger-rewrite-path:
