@@ -130,7 +130,7 @@ services:
     environment:
       - SERVER_PORT=8080
       - SPRING_PROFILES_ACTIVE=docker
-      - KAFKA_BOOTSTRAP_SERVER=redpanda:9092
+      - KAFKA_BOOTSTRAP_SERVERS=redpanda:29092
       - REDIS_HOST=redis
       - REDIS_PASSWORD=${REDIS_PASSWORD:-pingtower}
       - POSTGRES_HOST=postgres:5432
@@ -172,7 +172,7 @@ services:
     environment:
       - SERVER_PORT=8080
       - SPRING_PROFILES_ACTIVE=docker
-      - KAFKA_BOOTSTRAP_SERVER=redpanda:9092
+      - KAFKA_BOOTSTRAP_SERVERS=redpanda:29092
       - REDIS_HOST=redis
       - REDIS_PASSWORD=${REDIS_PASSWORD:-pingtower}
       - POSTGRES_HOST=postgres:5432
@@ -245,7 +245,7 @@ services:
     environment:
       - SERVER_PORT=8080
       - SPRING_PROFILES_ACTIVE=docker
-      - KAFKA_BOOTSTRAP_SERVER=redpanda:9092
+      - KAFKA_BOOTSTRAP_SERVERS=redpanda:29092
       - REDIS_HOST=redis
       - REDIS_PASSWORD=${REDIS_PASSWORD:-pingtower}
       - POSTGRES_HOST=postgres:5432
