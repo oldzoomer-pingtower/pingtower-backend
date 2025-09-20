@@ -1,0 +1,81 @@
+# Dynamic Configuration for Swagger UI
+http:
+  routers:
+    # Swagger UI для всех сервисов
+    swagger-pinger:
+      rule: "Host(`${DOMAIN:-localhost}`) && PathPrefix(`/swagger/pinger`)"
+      entryPoints:
+        - web
+      service: pinger-swagger
+      middlewares:
+        - swagger-strip-prefix
+        - swagger-add-headers
+
+    swagger-notificator:
+      rule: "Host(`${DOMAIN:-localhost}`) && PathPrefix(`/swagger/notificator`)"
+      entryPoints:
+        - web
+      service: notificator-swagger
+      middlewares:
+        - swagger-strip-prefix
+        - swagger-add-headers
+
+    swagger-settings:
+      rule: "Host(`${DOMAIN:-localhost}`) && PathPrefix(`/swagger/settings`)"
+      entryPoints:
+        - web
+      service: settings-swagger
+      middlewares:
+        - swagger-strip-prefix
+        - swagger-add-headers
+
+    swagger-statistics:
+      rule: "Host(`${DOMAIN:-localhost}`) && PathPrefix(`/swagger/statistics`)"
+      entryPoints:
+        - web
+      service: statistics-swagger
+      middlewares:
+        - swagger-strip-prefix
+        - swagger-rewrite-path
+        - swagger-add-headers
+
+  services:
+    pinger-swagger:
+      loadBalancer:
+        servers:
+          - url: "http://pingtower-pinger:8080"
+
+    notificator-swagger:
+      loadBalancer:
+        servers:
+          - url: "http://pingtower-notificator:8080"
+
+    settings-swagger:
+      loadBalancer:
+        servers:
+          - url: "http://pingtower-settings-manager:8080"
+
+    statistics-swagger:
+      loadBalancer:
+        servers:
+          - url: "http://pingtower-statistics:8080"
+
+  middlewares:
+    swagger-strip-prefix:
+      stripPrefix:
+        prefixes:
+          - "/swagger/pinger"
+          - "/swagger/notificator"
+          - "/swagger/settings"
+          - "/swagger/statistics"
+
+    swagger-rewrite-path:
+      replacePathRegex:
+        regex: "^/swagger/([^/]+)(/.*)?$"
+        replacement: "/swagger-ui/index.html"
+
+    swagger-add-headers:
+      headers:
+        customRequestHeaders:
+          X-Forwarded-Proto: "http"
+          X-Forwarded-Host: "${DOMAIN:-localhost}"
