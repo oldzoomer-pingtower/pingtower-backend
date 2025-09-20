@@ -44,8 +44,6 @@ COPY settings.gradle build.gradle $APP_HOME/
 RUN ./gradlew dependencies --no-daemon
 
 # Copy source code after dependencies are cached
-COPY config/ $APP_HOME/config/
-COPY lib/ $APP_HOME/lib/
 COPY ${SERVICE_NAME}/ $APP_HOME/${SERVICE_NAME}/
 
 #
