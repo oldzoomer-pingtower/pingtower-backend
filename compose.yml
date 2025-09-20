@@ -107,6 +107,15 @@ services:
     volumes:
       - ./traefik:/etc/traefik/
       - /var/run/docker.sock:/var/run/docker.sock:ro
+    depends_on:
+      pingtower-pinger:
+        condition: service_healthy
+      pingtower-notificator:
+        condition: service_healthy
+      pingtower-settings-manager:
+        condition: service_healthy
+      pingtower-statistics:
+        condition: service_healthy
 
   # Сервис проверки доступности систем
   # Основные зависимости: PostgreSQL, Redis, Kafka
