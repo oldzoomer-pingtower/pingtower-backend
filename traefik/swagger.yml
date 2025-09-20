@@ -60,14 +60,6 @@ http:
           - url: "http://pingtower-statistics:8080"
 
   middlewares:
-    swagger-strip-prefix:
-      stripPrefix:
-        prefixes:
-          - "/swagger/pinger"
-          - "/swagger/notificator"
-          - "/swagger/settings"
-          - "/swagger/statistics"
-
     swagger-rewrite-path:
       replacePathRegex:
         regex: "^/swagger/([^/]+)(/.*)?$"
