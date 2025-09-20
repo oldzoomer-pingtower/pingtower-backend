@@ -72,7 +72,7 @@ http:
     swagger-rewrite-path:
       replacePathRegex:
         regex: "^/swagger/([^/]+)(/.*)?$"
-        replacement: "/swagger-ui/index.html"
+        replacement: "/swagger-ui.html"
 
     swagger-add-headers:
       headers:
