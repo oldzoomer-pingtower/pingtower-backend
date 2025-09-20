@@ -223,6 +223,8 @@ services:
     labels:
       - "traefik.http.routers.settings.rule=Host(`${DOMAIN:-localhost}`) && PathPrefix(`/settings`)"
       - "traefik.http.routers.settings.entrypoints=web"
+      - "traefik.enable=true"
+      - "traefik.http.services.settings.loadbalancer.server.port=8080"
     depends_on:
       postgres:
         condition: service_healthy
