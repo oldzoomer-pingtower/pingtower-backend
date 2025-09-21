@@ -2,17 +2,21 @@ package ru.oldzoomer.pingtower.pinger.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import ru.oldzoomer.pingtower.common.security.KeycloakJwtAuthenticationConverter;
+
+import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
     @Bean
+    @Order(1)
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(authz -> authz
@@ -23,7 +27,7 @@ public class SecurityConfig {
                 .jwt(jwt -> jwt.jwtAuthenticationConverter(new KeycloakJwtAuthenticationConverter()))
             )
             .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .sessionCreationPolicy(STATELESS)
             )
             .csrf(AbstractHttpConfigurer::disable);
             

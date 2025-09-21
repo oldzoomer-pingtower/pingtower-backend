@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<realm name="pingtower" enabled="true">
+    <displayName>PingTower</displayName>
+    <displayNameHtml>&lt;div class="kc-logo-text"&gt;&lt;span&gt;PingTower&lt;/span&gt;&lt;/div&gt;</displayNameHtml>
+    <notBefore>0</notBefore>
+    <revokeRefreshToken>false</revokeRefreshToken>
+    <refreshTokenMaxReuse>0</refreshTokenMaxReuse>
+    <accessTokenLifespan>300</accessTokenLifespan>
+    <accessTokenLifespanForImplicitFlow>900</accessTokenLifespanForImplicitFlow>
+    <ssoSessionIdleTimeout>1800</ssoSessionIdleTimeout>
+    <ssoSessionMaxLifespan>36000</ssoSessionMaxLifespan>
+    <ssoSessionIdleTimeoutRememberMe>0</ssoSessionIdleTimeoutRememberMe>
+    <ssoSessionMaxLifespanRememberMe>0</ssoSessionMaxLifespanRememberMe>
+    <offlineSessionIdleTimeout>2592000</offlineSessionIdleTimeout>
+    <offlineSessionMaxLifespanEnabled>false</offlineSessionMaxLifespanEnabled>
+    <offlineSessionMaxLifespan>5184000</offlineSessionMaxLifespan>
+    <clientSessionIdleTimeout>0</clientSessionIdleTimeout>
+    <clientSessionMaxLifespan>0</clientSessionMaxLifespan>
+    <clientOfflineSessionIdleTimeout>0</clientOfflineSessionIdleTimeout>
+    <clientOfflineSessionMaxLifespan>0</clientOfflineSessionMaxLifespan>
+    <accessCodeLifespan>60</accessCodeLifespan>
+    <accessCodeLifespanUserAction>300</accessCodeLifespanUserAction>
+    <accessCodeLifespanLogin>1800</accessCodeLifespanLogin>
+    <actionTokenGeneratedByAdminLifespan>43200</actionTokenGeneratedByAdminLifespan>
+    <actionTokenGeneratedByUserLifespan>300</actionTokenGeneratedByUserLifespan>
+    <enabled>true</enabled>
+    <sslRequired>external</sslRequired>
+    <registrationAllowed>false</registrationAllowed>
+    <registrationEmailAsUsername>false</registrationEmailAsUsername>
+    <rememberMe>false</rememberMe>
+    <verifyEmail>false</verifyEmail>
+    <loginWithEmailAllowed>true</loginWithEmailAllowed>
+    <duplicateEmailsAllowed>false</duplicateEmailsAllowed>
+    <resetPasswordAllowed>false</resetPasswordAllowed>
+    <editUsernameAllowed>false</editUsernameAllowed>
+    <bruteForceProtected>false</bruteForceProtected>
+    <permanentLockout>false</permanentLockout>
+    <maxFailureWaitSeconds>900</maxFailureWaitSeconds>
+    <minimumQuickLoginWaitSeconds>60</minimumQuickLoginWaitSeconds>
+    <waitIncrementSeconds>60</waitIncrementSeconds>
+    <quickLoginCheckMilliSeconds>1000</quickLoginCheckMilliSeconds>
+    <maxDeltaTimeSeconds>43200</maxDeltaTimeSeconds>
+    <failureFactor>30</failureFactor>
+    
+    <roles>
+        <realm>
+            <role name="user">
+                <description>Default user role</description>
+            </role>
+            <role name="admin">
+                <description>Administrator role</description>
+            </role>
+        </realm>
+    </roles>
+    
+    <defaultRoles>
+        <role>user</role>
+    </defaultRoles>
+    
+    <users>
+        <user>
+            <username>admin</username>
+            <email>admin@pingtower.local</email>
+            <firstName>Admin</firstName>
+            <lastName>User</lastName>
+            <enabled>true</enabled>
+            <credentials>
+                <credential>
+                    <type>password</type>
+                    <value>admin</value>
+                </credential>
+            </credentials>
+            <realmRoles>
+                <role>admin</role>
+                <role>user</role>
+            </realmRoles>
+        </user>
+        <user>
+            <username>user</username>
+            <email>user@pingtower.local</email>
+            <firstName>Regular</firstName>
+            <lastName>User</lastName>
+            <enabled>true</enabled>
+            <credentials>
+                <credential>
+                    <type>password</type>
+                    <value>user</value>
+                </credential>
+            </credentials>
+            <realmRoles>
+                <role>user</role>
+            </realmRoles>
+        </user>
+    </users>
+    
+    <clients>
+        <client>
+            <clientId>pingtower-backend</clientId>
+            <name>PingTower Backend</name>
+            <description>Backend services for PingTower</description>
+            <enabled>true</enabled>
+            <clientAuthenticatorType>client-secret</clientAuthenticatorType>
+            <secret>pingtower-secret</secret>
+            <redirectUris>
+                <uri>http://localhost:8080/*</uri>
+                <uri>http://localhost:8081/*</uri>
+                <uri>http://localhost:8082/*</uri>
+                <uri>http://localhost:8083/*</uri>
+                <uri>http://localhost:8084/*</uri>
+                <!-- External access URIs -->
+                <uri>https://*/auth/callback</uri>
+                <uri>http://*/auth/callback</uri>
+                <uri>http://127.0.0.1:*</uri>
+                <uri>http://localhost:*</uri>
+            </redirectUris>
+            <webOrigins>
+                <origin>http://localhost:8080</origin>
+                <origin>http://localhost:8081</origin>
+                <origin>http://localhost:8082</origin>
+                <origin>http://localhost:8083</origin>
+                <origin>http://localhost:8084</origin>
+                <!-- External access origins -->
+                <origin>*</origin>
+            </webOrigins>
+            <publicClient>false</publicClient>
+            <fullScopeAllowed>true</fullScopeAllowed>
+            <protocol>openid-connect</protocol>
+            <bearerOnly>false</bearerOnly>
+            <consentRequired>false</consentRequired>
+            <standardFlowEnabled>true</standardFlowEnabled>
+            <implicitFlowEnabled>false</implicitFlowEnabled>
+            <directAccessGrantsEnabled>true</directAccessGrantsEnabled>
+            <serviceAccountsEnabled>false</serviceAccountsEnabled>
+            <authorizationServicesEnabled>false</authorizationServicesEnabled>
+        </client>
+        <!-- External client for web and mobile applications -->
+        <client>
+            <clientId>pingtower-frontend</clientId>
+            <name>PingTower Frontend</name>
+            <description>Frontend applications for PingTower</description>
+            <enabled>true</enabled>
+            <clientAuthenticatorType>client-secret</clientAuthenticatorType>
+            <secret>pingtower-frontend-secret</secret>
+            <redirectUris>
+                <uri>*</uri>
+            </redirectUris>
+            <webOrigins>
+                <origin>*</origin>
+            </webOrigins>
+            <publicClient>true</publicClient>
+            <fullScopeAllowed>true</fullScopeAllowed>
+            <protocol>openid-connect</protocol>
+            <bearerOnly>false</bearerOnly>
+            <consentRequired>false</consentRequired>
+            <standardFlowEnabled>true</standardFlowEnabled>
+            <implicitFlowEnabled>true</implicitFlowEnabled>
+            <directAccessGrantsEnabled>true</directAccessGrantsEnabled>
+            <serviceAccountsEnabled>false</serviceAccountsEnabled>
+            <authorizationServicesEnabled>false</authorizationServicesEnabled>
+        </client>
+    </clients>
+    
+    <browserSecurityHeaders>
+        <header name="xFrameOptions" value="SAMEORIGIN"/>
+        <header name="contentSecurityPolicy" value="frame-src 'self'; frame-ancestors 'self'; object-src 'none';"/>
+        <header name="xContentTypeOptions" value="nosniff"/>
+        <header name="xRobotsTag" value="none"/>
+        <header name="xXSSProtection" value="1; mode=block"/>
+        <header name="strictTransportSecurity" value="max-age=31536000; includeSubDomains"/>
+    </browserSecurityHeaders>
+</realm>

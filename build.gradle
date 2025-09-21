@@ -14,44 +14,84 @@ allprojects {
 }
 
 subprojects {
-    apply plugin: 'java'
-    apply plugin: 'org.springframework.boot'
-    apply plugin: 'io.spring.dependency-management'
+    // Apply Spring Boot plugin to all subprojects except the common module
+    if (project.name != 'common') {
+        apply plugin: 'java'
+        apply plugin: 'org.springframework.boot'
+        apply plugin: 'io.spring.dependency-management'
 
+        java {
+            toolchain {
+                languageVersion = JavaLanguageVersion.of(21)
+            }
+        }
+
+        configurations {
+            compileOnly {
+                extendsFrom annotationProcessor
+            }
+        }
+
+        dependencyManagement {
+            imports {
+                mavenBom org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES
+            }
+        }
+
+        ext {
+            mapstructVersion = '1.6.3'
+            therapiVersion = '0.15.0'
+        }
+
+        dependencies {
+            compileOnly 'org.projectlombok:lombok'
+            annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+            annotationProcessor 'org.projectlombok:lombok'
+            developmentOnly 'org.springframework.boot:spring-boot-devtools'
+            developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
+            testImplementation 'org.springframework.boot:spring-boot-starter-test'
+            testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+        }
+
+        tasks.named('test') {
+            useJUnitPlatform()
+        }
+    }
+}
+
+// Configure the common module separately since it's a library module
+project(':common') {
+    apply plugin: 'java-library'
+    apply plugin: 'io.spring.dependency-management'
+    
     java {
         toolchain {
             languageVersion = JavaLanguageVersion.of(21)
         }
     }
-
+    
     configurations {
         compileOnly {
             extendsFrom annotationProcessor
         }
     }
-
+    
     dependencyManagement {
         imports {
             mavenBom org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES
         }
     }
-
-    ext {
-        mapstructVersion = '1.6.3'
-        therapiVersion = '0.15.0'
-    }
-
+    
     dependencies {
+        // Spring Security and OAuth2 dependencies
+        api 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+        api 'org.springframework.boot:spring-boot-starter-security'
+        
+        // Spring Boot starter for web (needed for security configurations)
+        api 'org.springframework.boot:spring-boot-starter-web'
+        
+        // Lombok for reducing boilerplate code
         compileOnly 'org.projectlombok:lombok'
-        annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
         annotationProcessor 'org.projectlombok:lombok'
-        developmentOnly 'org.springframework.boot:spring-boot-devtools'
-        developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
-        testImplementation 'org.springframework.boot:spring-boot-starter-test'
-        testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    }
-
-    tasks.named('test') {
-        useJUnitPlatform()
     }
 }

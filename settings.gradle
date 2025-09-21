@@ -2,5 +2,5 @@ rootProject.name = 'pingtower'
 
 include 'notificator'
 include 'pinger'
-include 'settings-manager'
 include 'statistics'
+include 'common'

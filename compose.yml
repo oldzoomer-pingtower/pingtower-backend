@@ -4,18 +4,21 @@
 # - redis: Кэширование данных
 # - redpanda: Очереди сообщений (Kafka)
 # - postgres: Основная база данных
+# - cassandra: База данных для статистики
+# - keycloak: Сервис аутентификации и авторизации
 # - pingtower-*: Микросервисы системы
 #
 # Требуемые переменные окружения:
 # DOMAIN - домен приложения
 # POSTGRES_USER, POSTGRES_PASSWORD - доступ к PostgreSQL
 # REDIS_PASSWORD - пароль Redis
+# KEYCLOAK_ADMIN, KEYCLOAK_ADMIN_PASSWORD - учетные данные администратора Keycloak
 #
 # Использование:
 # 1. Создать .env файл с переменными
 # 2. Запустить: docker compose up -d
 #
-# Версия: 1.0
+# Версия: 1.1
 
 services:
   redis:
@@ -93,6 +96,35 @@ services:
       timeout: 10s
       retries: 5
 
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0.0
+    container_name: pingtower-keycloak
+    networks:
+      - pingtower
+    restart: unless-stopped
+    environment:
+      - KC_DB=postgres
+      - KC_DB_URL=jdbc:postgresql://postgres:5432/${POSTGRES_DB:-pingtower}
+      - KC_DB_USERNAME=${POSTGRES_USER:-pingtower}
+      - KC_DB_PASSWORD=${POSTGRES_PASSWORD:-pingtower}
+      - KEYCLOAK_ADMIN=${KEYCLOAK_ADMIN:-admin}
+      - KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD:-admin}
+      - KC_HOSTNAME=${DOMAIN:-localhost}
+      - KC_HTTP_ENABLED=true
+      - KC_HTTP_PORT=8080
+      - KC_PROXY=edge
+    command:
+      - start-dev
+      - --import-realm
+    volumes:
+      - ./keycloak/realms:/opt/keycloak/data/import
+      - keycloak_data:/opt/keycloak/data
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   # Сервис проверки доступности систем
   # Основные зависимости: PostgreSQL, Redis, Kafka
   pingtower-pinger:
@@ -118,6 +150,8 @@ services:
       - KAFKA_BOOTSTRAP_SERVERS=redpanda:29092
       - REDIS_HOST=redis
       - REDIS_PASSWORD=${REDIS_PASSWORD:-pingtower}
+      - JWT_ISSUER_URI=http://keycloak:8080/realms/pingtower
+      - JWT_JWK_SET_URI=http://keycloak:8080/realms/pingtower/protocol/openid-connect/certs
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       start_period: 120s
@@ -129,6 +163,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      keycloak:
+        condition: service_started
 
   # Сервис управления уведомлениями
   # Основные зависимости: PostgreSQL, Redis, Kafka
@@ -155,6 +191,8 @@ services:
       - KAFKA_BOOTSTRAP_SERVERS=redpanda:29092
       - REDIS_HOST=redis
       - REDIS_PASSWORD=${REDIS_PASSWORD:-pingtower}
+      - JWT_ISSUER_URI=http://keycloak:8080/realms/pingtower
+      - JWT_JWK_SET_URI=http://keycloak:8080/realms/pingtower/protocol/openid-connect/certs
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       start_period: 120s
@@ -166,49 +204,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-
-  # Сервис управления настройками
-  # Основные зависимости: PostgreSQL
-  pingtower-settings-manager:
-    image: pingtower/settings-manager:latest
-    container_name: pingtower-settings-manager
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        SERVICE_NAME: settings-manager
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-    networks:
-      - pingtower
-    ports:
-      - "8083:8080"
-    restart: unless-stopped
-    environment:
-      - SERVER_PORT=8080
-      - SPRING_PROFILES_ACTIVE=docker
-      - KAFKA_BOOTSTRAP_SERVERS=redpanda:29092
-      - REDIS_HOST=redis
-      - REDIS_PASSWORD=${REDIS_PASSWORD:-pingtower}
-      - POSTGRES_HOST=postgres:5432
-      - POSTGRES_USER=${POSTGRES_USER:-pingtower}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-pingtower}
-      - POSTGRES_DB=${POSTGRES_DB:-pingtower}
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
-      start_period: 120s
-      interval: 30s
-      timeout: 5s
-      retries: 5
-    depends_on:
-      redpanda:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      postgres:
-        condition: service_healthy
+      keycloak:
+        condition: service_started
 
   # Сервис статистики и агрегации данных
   # Основные зависимости: PostgreSQL, Redis, Kafka, Cassandra
@@ -237,6 +234,8 @@ services:
       - REDIS_PASSWORD=${REDIS_PASSWORD:-pingtower}
       - CASSANDRA_CONTACT_POINTS=cassandra
       - CASSANDRA_LOCAL_DATACENTER=datacenter1
+      - JWT_ISSUER_URI=http://keycloak:8080/realms/pingtower
+      - JWT_JWK_SET_URI=http://keycloak:8080/realms/pingtower/protocol/openid-connect/certs
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       start_period: 120s
@@ -252,6 +251,8 @@ services:
         condition: service_healthy
       cassandra:
         condition: service_healthy
+      keycloak:
+        condition: service_started
 
 networks:
   pingtower:
@@ -261,3 +262,4 @@ volumes:
   postgres_storage:
   redpanda_data:
   cassandra_data:
+  keycloak_data:

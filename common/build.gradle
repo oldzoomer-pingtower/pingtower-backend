@@ -1,0 +1,16 @@
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    // Spring Security and OAuth2 dependencies
+    api 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+    api 'org.springframework.boot:spring-boot-starter-security'
+    
+    // Spring Boot starter for web (needed for security configurations)
+    api 'org.springframework.boot:spring-boot-starter-web'
+    
+    // Lombok for reducing boilerplate code
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+}
