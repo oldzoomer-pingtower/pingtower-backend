@@ -6,6 +6,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -26,6 +27,14 @@ public class TestConfiguration {
     @ServiceConnection
     public static final RedisContainer redisContainer = new RedisContainer("redis:alpine")
             .waitingFor(Wait.forSuccessfulCommand("redis-cli ping"));
+
+    @Container
+    @ServiceConnection
+    public static final PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:alpine")
+            .withDatabaseName("pingtower")
+            .withUsername("pingtower")
+            .withPassword("pingtower")
+            .waitingFor(Wait.forListeningPort());
 
     @Test
     void contextLoads() {
