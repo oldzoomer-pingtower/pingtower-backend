@@ -93,27 +93,6 @@ services:
       timeout: 10s
       retries: 5
 
-  traefik:
-    container_name: pingtower-traefik
-    image: traefik:latest
-    restart: unless-stopped
-    ports:
-      - "80:80"
-    networks:
-      - pingtower
-    volumes:
-      - ./traefik:/etc/traefik/
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    depends_on:
-      pingtower-pinger:
-        condition: service_healthy
-      pingtower-notificator:
-        condition: service_healthy
-      pingtower-settings-manager:
-        condition: service_healthy
-      pingtower-statistics:
-        condition: service_healthy
-
   # Сервис проверки доступности систем
   # Основные зависимости: PostgreSQL, Redis, Kafka
   pingtower-pinger:
@@ -130,8 +109,8 @@ services:
           memory: 512M
     networks:
       - pingtower
-    expose:
-      - "8080"
+    ports:
+      - "8081:8080"
     restart: unless-stopped
     environment:
       - SERVER_PORT=8080
@@ -139,11 +118,6 @@ services:
       - KAFKA_BOOTSTRAP_SERVERS=redpanda:29092
       - REDIS_HOST=redis
       - REDIS_PASSWORD=${REDIS_PASSWORD:-pingtower}
-    labels:
-      - "traefik.http.routers.pinger.rule=Host(`${DOMAIN:-localhost}`) && PathPrefix(`/pinger`)"
-      - "traefik.http.routers.pinger.entrypoints=web"
-      - "traefik.enable=true"
-      - "traefik.http.services.pinger.loadbalancer.server.port=8080"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       start_period: 120s
@@ -172,8 +146,8 @@ services:
           memory: 512M
     networks:
       - pingtower
-    expose:
-      - "8080"
+    ports:
+      - "8082:8080"
     restart: unless-stopped
     environment:
       - SERVER_PORT=8080
@@ -181,11 +155,6 @@ services:
       - KAFKA_BOOTSTRAP_SERVERS=redpanda:29092
       - REDIS_HOST=redis
       - REDIS_PASSWORD=${REDIS_PASSWORD:-pingtower}
-    labels:
-      - "traefik.http.routers.notificator.rule=Host(`${DOMAIN:-localhost}`) && PathPrefix(`/notificator`)"
-      - "traefik.http.routers.notificator.entrypoints=web"
-      - "traefik.enable=true"
-      - "traefik.http.services.notificator.loadbalancer.server.port=8080"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       start_period: 120s
@@ -214,8 +183,8 @@ services:
           memory: 512M
     networks:
       - pingtower
-    expose:
-      - "8080"
+    ports:
+      - "8083:8080"
     restart: unless-stopped
     environment:
       - SERVER_PORT=8080
@@ -227,11 +196,6 @@ services:
       - POSTGRES_USER=${POSTGRES_USER:-pingtower}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-pingtower}
       - POSTGRES_DB=${POSTGRES_DB:-pingtower}
-    labels:
-      - "traefik.http.routers.settings.rule=Host(`${DOMAIN:-localhost}`) && PathPrefix(`/settings`)"
-      - "traefik.http.routers.settings.entrypoints=web"
-      - "traefik.enable=true"
-      - "traefik.http.services.settings.loadbalancer.server.port=8080"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       start_period: 120s
@@ -262,8 +226,8 @@ services:
           memory: 512M
     networks:
       - pingtower
-    expose:
-      - "8080"
+    ports:
+      - "8084:8080"
     restart: unless-stopped
     environment:
       - SERVER_PORT=8080
@@ -273,11 +237,6 @@ services:
       - REDIS_PASSWORD=${REDIS_PASSWORD:-pingtower}
       - CASSANDRA_CONTACT_POINTS=cassandra
       - CASSANDRA_LOCAL_DATACENTER=datacenter1
-    labels:
-      - "traefik.http.routers.statistics.rule=Host(`${DOMAIN:-localhost}`) && PathPrefix(`/statistics`)"
-      - "traefik.http.routers.statistics.entrypoints=web"
-      - "traefik.enable=true"
-      - "traefik.http.services.statistics.loadbalancer.server.port=8080"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       start_period: 120s
