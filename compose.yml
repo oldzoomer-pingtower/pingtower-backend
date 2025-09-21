@@ -39,9 +39,7 @@ services:
       - pingtower
     restart: unless-stopped
     environment:
-      - CASSANDRA_CLUSTER_NAME=pingtower
       - CASSANDRA_DC=datacenter1
-      - CASSANDRA_RACK=rack1
       - CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch
     volumes:
       - cassandra_data:/var/lib/cassandra
@@ -149,9 +147,9 @@ services:
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       start_period: 120s
-      interval: 10s
+      interval: 30s
       timeout: 5s
-      retries: 10
+      retries: 5
     depends_on:
       redpanda:
         condition: service_healthy
@@ -191,9 +189,9 @@ services:
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       start_period: 120s
-      interval: 10s
+      interval: 30s
       timeout: 5s
-      retries: 10
+      retries: 5
     depends_on:
       redpanda:
         condition: service_healthy
@@ -237,9 +235,9 @@ services:
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       start_period: 120s
-      interval: 10s
+      interval: 30s
       timeout: 5s
-      retries: 10
+      retries: 5
     depends_on:
       redpanda:
         condition: service_healthy
@@ -274,6 +272,7 @@ services:
       - REDIS_HOST=redis
       - REDIS_PASSWORD=${REDIS_PASSWORD:-pingtower}
       - CASSANDRA_CONTACT_POINTS=cassandra
+      - CASSANDRA_LOCAL_DATACENTER=datacenter1
     labels:
       - "traefik.http.routers.statistics.rule=Host(`${DOMAIN:-localhost}`) && PathPrefix(`/statistics`)"
       - "traefik.http.routers.statistics.entrypoints=web"
@@ -282,7 +281,7 @@ services:
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       start_period: 120s
-      interval: 10s
+      interval: 30s
       timeout: 5s
       retries: 10
     depends_on:
