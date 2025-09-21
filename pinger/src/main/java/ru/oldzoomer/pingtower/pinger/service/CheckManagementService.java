@@ -2,20 +2,27 @@ package ru.oldzoomer.pingtower.pinger.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.oldzoomer.pingtower.pinger.dto.CheckConfigurationDTO;
+import ru.oldzoomer.pingtower.pinger.entity.CheckConfigurationEntity;
+import ru.oldzoomer.pingtower.pinger.mapper.CheckConfigurationMapper;
+import ru.oldzoomer.pingtower.pinger.repository.CheckConfigurationRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Optional;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class CheckManagementService {
 
-    private final Map<String, CheckConfigurationDTO> checks = new ConcurrentHashMap<>();
+    private final CheckConfigurationRepository checkConfigurationRepository;
+    private final CheckConfigurationMapper checkConfigurationMapper;
 
     /**
      * Получить список настроек проверок
@@ -27,22 +34,18 @@ public class CheckManagementService {
     public Map<String, Object> getChecks(int page, int size) {
         log.info("Получение списка настроек проверок, страница: {}, размер: {}", page, size);
         
-        List<CheckConfigurationDTO> allChecks = checks.values().stream().toList();
+        Pageable pageable = PageRequest.of(page - 1, size);
+        Page<CheckConfigurationEntity> pageResult = checkConfigurationRepository.findAll(pageable);
         
-        int total = allChecks.size();
-        int fromIndex = (page - 1) * size;
-        int toIndex = Math.min(fromIndex + size, total);
-        
-        List<CheckConfigurationDTO> pageChecks = allChecks.subList(
-            Math.min(fromIndex, total), 
-            Math.min(toIndex, total)
-        );
+        List<CheckConfigurationDTO> checks = pageResult.getContent().stream()
+                .map(checkConfigurationMapper::toDto)
+                .toList();
         
         return Map.of(
-            "checks", pageChecks,
+            "checks", checks,
             "page", page,
             "size", size,
-            "total", total
+            "total", pageResult.getTotalElements()
         );
     }
 
@@ -54,7 +57,8 @@ public class CheckManagementService {
      */
     public CheckConfigurationDTO getCheck(String checkId) {
         log.info("Получение информации о настройке проверки с ID: {}", checkId);
-        return checks.get(checkId);
+        Optional<CheckConfigurationEntity> entity = checkConfigurationRepository.findById(checkId);
+        return entity.map(checkConfigurationMapper::toDto).orElse(null);
     }
 
     /**
@@ -66,19 +70,20 @@ public class CheckManagementService {
     public CheckConfigurationDTO createCheck(CheckConfigurationDTO check) {
         log.info("Создание новой настройки проверки: {}", check);
         
+        CheckConfigurationEntity entity = checkConfigurationMapper.toEntity(check);
+        
         // Генерируем ID если не задан
-        if (check.getId() == null || check.getId().isEmpty()) {
-            check.setId(java.util.UUID.randomUUID().toString());
+        if (entity.getId() == null || entity.getId().isEmpty()) {
+            entity.setId(java.util.UUID.randomUUID().toString());
         }
         
         // Устанавливаем временные метки
-        String now = LocalDateTime.now().toString();
-        check.setCreatedAt(now);
-        check.setUpdatedAt(now);
+        LocalDateTime now = LocalDateTime.now();
+        entity.setCreatedAt(now);
+        entity.setUpdatedAt(now);
         
-        checks.put(check.getId(), check);
-        
-        return check;
+        CheckConfigurationEntity savedEntity = checkConfigurationRepository.save(entity);
+        return checkConfigurationMapper.toDto(savedEntity);
     }
 
     /**
@@ -91,16 +96,19 @@ public class CheckManagementService {
     public CheckConfigurationDTO updateCheck(String checkId, CheckConfigurationDTO check) {
         log.info("Обновление настройки проверки с ID: {}, данные: {}", checkId, check);
         
-        if (!checks.containsKey(checkId)) {
+        Optional<CheckConfigurationEntity> existingEntity = checkConfigurationRepository.findById(checkId);
+        if (existingEntity.isEmpty()) {
             return null;
         }
         
-        check.setId(checkId);
-        check.setUpdatedAt(LocalDateTime.now().toString());
+        CheckConfigurationEntity entity = checkConfigurationMapper.toEntity(check);
+        entity.setId(checkId);
+        entity.setUpdatedAt(LocalDateTime.now());
+        // Keep the original createdAt value
+        entity.setCreatedAt(existingEntity.get().getCreatedAt());
         
-        checks.put(checkId, check);
-        
-        return check;
+        CheckConfigurationEntity savedEntity = checkConfigurationRepository.save(entity);
+        return checkConfigurationMapper.toDto(savedEntity);
     }
 
     /**
@@ -111,6 +119,10 @@ public class CheckManagementService {
      */
     public boolean deleteCheck(String checkId) {
         log.info("Удаление настройки проверки с ID: {}", checkId);
-        return checks.remove(checkId) != null;
+        if (checkConfigurationRepository.existsById(checkId)) {
+            checkConfigurationRepository.deleteById(checkId);
+            return true;
+        }
+        return false;
     }
 }
