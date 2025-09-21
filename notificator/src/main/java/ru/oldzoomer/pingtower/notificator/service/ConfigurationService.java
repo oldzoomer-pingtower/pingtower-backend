@@ -1,31 +1,65 @@
 package ru.oldzoomer.pingtower.notificator.service;
 
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Service;
+import ru.oldzoomer.pingtower.notificator.entity.ConfigurationSettingEntity;
+import ru.oldzoomer.pingtower.notificator.mapper.ConfigurationSettingMapper;
+import ru.oldzoomer.pingtower.notificator.repository.ConfigurationSettingRepository;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 @Service
 public class ConfigurationService {
-    // В реальной реализации здесь будет логика получения настроек
-    // из внешних источников (Settings Manager через Kafka или локальные конфигурации)
     
-    private final Map<String, Object> configuration = new HashMap<>();
+    private final ConfigurationSettingRepository configurationSettingRepository;
+    private final ConfigurationSettingMapper configurationSettingMapper;
     
-    public ConfigurationService() {
-        // Инициализация с дефолтными значениями для демонстрации
+    public ConfigurationService(ConfigurationSettingRepository configurationSettingRepository, 
+                               ConfigurationSettingMapper configurationSettingMapper) {
+        this.configurationSettingRepository = configurationSettingRepository;
+        this.configurationSettingMapper = configurationSettingMapper;
+    }
+    
+    @PostConstruct
+    public void initializeDefaultSettings() {
         log.info("Initializing ConfigurationService with default settings");
-        configuration.put("email.smtp.server", "smtp.example.com");
-        configuration.put("email.smtp.port", 587);
-        configuration.put("telegram.bot.token", "your-bot-token");
-        configuration.put("webhook.url", "https://example.com/webhook");
-        configuration.put("grouping.interval", 3000L); // 5 минут
-        configuration.put("escalation.enabled", true);
-        log.info("ConfigurationService initialized with {} settings", configuration.size());
+        
+        // Check if settings already exist, if not, create defaults
+        if (configurationSettingRepository.count() == 0) {
+            log.info("No existing settings found, initializing with defaults");
+            
+            createOrUpdateSetting("email.smtp.server", "smtp.example.com", "STRING");
+            createOrUpdateSetting("email.smtp.port", "587", "INTEGER");
+            createOrUpdateSetting("telegram.bot.token", "your-bot-token", "STRING");
+            createOrUpdateSetting("webhook.url", "https://example.com/webhook", "STRING");
+            createOrUpdateSetting("grouping.interval", "3000", "LONG");
+            createOrUpdateSetting("escalation.enabled", "true", "BOOLEAN");
+        }
+        
+        log.info("ConfigurationService initialized with {} settings", configurationSettingRepository.count());
+    }
+    
+    private void createOrUpdateSetting(String key, String value, String dataType) {
+        Optional<ConfigurationSettingEntity> existingSetting = configurationSettingRepository.findByKey(key);
+        ConfigurationSettingEntity setting;
+        
+        if (existingSetting.isPresent()) {
+            setting = existingSetting.get();
+            setting.setValue(value);
+            setting.setDataType(dataType);
+        } else {
+            setting = new ConfigurationSettingEntity();
+            setting.setKey(key);
+            setting.setValue(value);
+            setting.setDataType(dataType);
+        }
+        
+        configurationSettingRepository.save(setting);
+        log.info("Initialized setting '{}': {}", key, value);
     }
     
     @Cacheable(value = "settings", key = "#key")
@@ -35,9 +69,16 @@ public class ConfigurationService {
             return null;
         }
         
-        Object value = configuration.get(key);
-        log.debug("Retrieved setting '{}': {}", key, value);
-        return value;
+        Optional<ConfigurationSettingEntity> settingEntity = configurationSettingRepository.findByKey(key);
+        if (settingEntity.isPresent()) {
+            ConfigurationSettingEntity entity = settingEntity.get();
+            Object value = configurationSettingMapper.valueToObject(entity.getValue(), entity.getDataType());
+            log.debug("Retrieved setting '{}': {}", key, value);
+            return value;
+        }
+        
+        log.debug("Setting '{}' not found", key);
+        return null;
     }
     
     @Cacheable(value = "stringSettings", key = "#key")
@@ -64,17 +105,6 @@ public class ConfigurationService {
         return null;
     }
     
-    @Cacheable(value = "booleanSettings", key = "#key")
-    public Boolean getBooleanSetting(String key) {
-        Object value = getSetting(key);
-        if (value instanceof Boolean) {
-            return (Boolean) value;
-        } else if (value != null) {
-            return Boolean.parseBoolean(value.toString());
-        }
-        return null;
-    }
-    
     public Long getLongSetting(String key) {
         Object value = getSetting(key);
         if (value instanceof Long) {
@@ -88,6 +118,17 @@ public class ConfigurationService {
                 log.warn("Failed to parse long setting '{}': {}", key, value, e);
                 return null;
             }
+        }
+        return null;
+    }
+    
+    @Cacheable(value = "booleanSettings", key = "#key")
+    public Boolean getBooleanSetting(String key) {
+        Object value = getSetting(key);
+        if (value instanceof Boolean) {
+            return (Boolean) value;
+        } else if (value != null) {
+            return Boolean.parseBoolean(value.toString());
         }
         return null;
     }
@@ -118,7 +159,7 @@ public class ConfigurationService {
     }
     
     // Метод для обновления настроек
-    @CacheEvict(value = {"settings", "stringSettings", "booleanSettings", "intSettings", "longSettings"}, key = "#key")
+    @CacheEvict(value = {"settings", "stringSettings", "booleanSettings", "intSettings"}, key = "#key")
     public void updateSetting(String key, Object value) {
         if (key == null || key.isEmpty()) {
             log.warn("Attempt to update setting with null or empty key");
@@ -126,6 +167,20 @@ public class ConfigurationService {
         }
         
         log.info("Updating setting '{}': {}", key, value);
-        configuration.put(key, value);
+        
+        Optional<ConfigurationSettingEntity> existingSetting = configurationSettingRepository.findByKey(key);
+        ConfigurationSettingEntity setting;
+        
+        if (existingSetting.isPresent()) {
+            setting = existingSetting.get();
+        } else {
+            setting = new ConfigurationSettingEntity();
+            setting.setKey(key);
+        }
+        
+        setting.setValue(configurationSettingMapper.objectToValue(value));
+        setting.setDataType(configurationSettingMapper.determineDataType(value));
+        
+        configurationSettingRepository.save(setting);
     }
 }

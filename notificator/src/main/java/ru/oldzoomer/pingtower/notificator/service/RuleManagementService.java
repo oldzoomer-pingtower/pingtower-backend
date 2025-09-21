@@ -2,20 +2,27 @@ package ru.oldzoomer.pingtower.notificator.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.oldzoomer.pingtower.notificator.dto.NotificationRuleDTO;
+import ru.oldzoomer.pingtower.notificator.entity.NotificationRuleEntity;
+import ru.oldzoomer.pingtower.notificator.mapper.NotificationRuleMapper;
+import ru.oldzoomer.pingtower.notificator.repository.NotificationRuleRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Optional;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class RuleManagementService {
 
-    private final Map<String, NotificationRuleDTO> rules = new ConcurrentHashMap<>();
+    private final NotificationRuleRepository notificationRuleRepository;
+    private final NotificationRuleMapper notificationRuleMapper;
 
     /**
      * Получить список правил уведомлений
@@ -27,22 +34,18 @@ public class RuleManagementService {
     public Map<String, Object> getRules(int page, int size) {
         log.info("Получение списка правил уведомлений, страница: {}, размер: {}", page, size);
         
-        List<NotificationRuleDTO> allRules = rules.values().stream().toList();
+        Pageable pageable = PageRequest.of(page - 1, size);
+        Page<NotificationRuleEntity> pageResult = notificationRuleRepository.findAll(pageable);
         
-        int total = allRules.size();
-        int fromIndex = (page - 1) * size;
-        int toIndex = Math.min(fromIndex + size, total);
-        
-        List<NotificationRuleDTO> pageRules = allRules.subList(
-            Math.min(fromIndex, total), 
-            Math.min(toIndex, total)
-        );
+        List<NotificationRuleDTO> rules = pageResult.getContent().stream()
+                .map(notificationRuleMapper::toDto)
+                .toList();
         
         return Map.of(
-            "rules", pageRules,
+            "rules", rules,
             "page", page,
             "size", size,
-            "total", total
+            "total", pageResult.getTotalElements()
         );
     }
 
@@ -54,7 +57,8 @@ public class RuleManagementService {
      */
     public NotificationRuleDTO getRule(String ruleId) {
         log.info("Получение информации о правиле уведомлений с ID: {}", ruleId);
-        return rules.get(ruleId);
+        Optional<NotificationRuleEntity> entity = notificationRuleRepository.findById(ruleId);
+        return entity.map(notificationRuleMapper::toDto).orElse(null);
     }
 
     /**
@@ -66,19 +70,20 @@ public class RuleManagementService {
     public NotificationRuleDTO createRule(NotificationRuleDTO rule) {
         log.info("Создание нового правила уведомлений: {}", rule);
         
+        NotificationRuleEntity entity = notificationRuleMapper.toEntity(rule);
+        
         // Генерируем ID если не задан
-        if (rule.getId() == null || rule.getId().isEmpty()) {
-            rule.setId(java.util.UUID.randomUUID().toString());
+        if (entity.getId() == null || entity.getId().isEmpty()) {
+            entity.setId(java.util.UUID.randomUUID().toString());
         }
         
         // Устанавливаем временные метки
-        String now = LocalDateTime.now().toString();
-        rule.setCreatedAt(now);
-        rule.setUpdatedAt(now);
+        LocalDateTime now = LocalDateTime.now();
+        entity.setCreatedAt(now);
+        entity.setUpdatedAt(now);
         
-        rules.put(rule.getId(), rule);
-        
-        return rule;
+        NotificationRuleEntity savedEntity = notificationRuleRepository.save(entity);
+        return notificationRuleMapper.toDto(savedEntity);
     }
 
     /**
@@ -91,16 +96,19 @@ public class RuleManagementService {
     public NotificationRuleDTO updateRule(String ruleId, NotificationRuleDTO rule) {
         log.info("Обновление правила уведомлений с ID: {}, данные: {}", ruleId, rule);
         
-        if (!rules.containsKey(ruleId)) {
+        Optional<NotificationRuleEntity> existingEntity = notificationRuleRepository.findById(ruleId);
+        if (existingEntity.isEmpty()) {
             return null;
         }
         
-        rule.setId(ruleId);
-        rule.setUpdatedAt(LocalDateTime.now().toString());
+        NotificationRuleEntity entity = notificationRuleMapper.toEntity(rule);
+        entity.setId(ruleId);
+        entity.setUpdatedAt(LocalDateTime.now());
+        // Keep the original createdAt value
+        entity.setCreatedAt(existingEntity.get().getCreatedAt());
         
-        rules.put(ruleId, rule);
-        
-        return rule;
+        NotificationRuleEntity savedEntity = notificationRuleRepository.save(entity);
+        return notificationRuleMapper.toDto(savedEntity);
     }
 
     /**
@@ -111,6 +119,10 @@ public class RuleManagementService {
      */
     public boolean deleteRule(String ruleId) {
         log.info("Удаление правила уведомлений с ID: {}", ruleId);
-        return rules.remove(ruleId) != null;
+        if (notificationRuleRepository.existsById(ruleId)) {
+            notificationRuleRepository.deleteById(ruleId);
+            return true;
+        }
+        return false;
     }
 }
