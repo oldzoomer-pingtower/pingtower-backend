@@ -9,7 +9,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -31,7 +30,7 @@ public class ChannelManagementService {
         
         List<NotificationChannelDTO> allChannels = channels.values().stream()
                 .filter(channel -> type == null || channel.getType().equals(type))
-                .collect(Collectors.toList());
+                .toList();
         
         int total = allChannels.size();
         int fromIndex = (page - 1) * size;

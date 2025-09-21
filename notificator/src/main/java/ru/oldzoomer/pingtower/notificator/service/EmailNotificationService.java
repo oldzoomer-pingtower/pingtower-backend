@@ -26,7 +26,6 @@ public class EmailNotificationService implements NotificationChannel {
             String toAddress = configurationService.getStringSetting("email.to.address");
             if (toAddress == null || toAddress.isEmpty()) {
                 log.warn("Email recipient address not configured");
-                return;
             }
             
             // Пример отправки email (закомментирован для демонстрации)

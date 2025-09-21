@@ -10,7 +10,6 @@ import ru.oldzoomer.pingtower.notificator.service.ConfigurationService;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)

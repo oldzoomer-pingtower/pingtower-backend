@@ -11,7 +11,7 @@ import ru.oldzoomer.pingtower.statistics.cassandra.repository.RawCheckResultRepo
 import ru.oldzoomer.pingtower.statistics.dto.CheckResult;
 
 import java.time.LocalDateTime;
-import static org.mockito.ArgumentMatchers.any;
+
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)

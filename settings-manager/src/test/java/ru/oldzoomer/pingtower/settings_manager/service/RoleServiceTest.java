@@ -17,7 +17,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -65,7 +64,7 @@ class RoleServiceTest {
 
         assertNotNull(result);
         assertEquals(1, result.size());
-        assertEquals("ADMIN", result.get(0).getName());
+        assertEquals("ADMIN", result.getFirst().getName());
         verify(roleRepository).findAll();
     }
 
@@ -142,9 +141,7 @@ class RoleServiceTest {
     void testCreateRole_NameExists() {
         when(roleRepository.existsByName("ADMIN")).thenReturn(true);
 
-        assertThrows(RuntimeException.class, () -> {
-            roleService.createRole(testRole);
-        });
+        assertThrows(RuntimeException.class, () -> roleService.createRole(testRole));
 
         verify(roleRepository).existsByName("ADMIN");
         verify(roleRepository, never()).save(any(RoleEntity.class));
@@ -174,9 +171,7 @@ class RoleServiceTest {
         UUID nonExistentId = UUID.randomUUID();
         when(roleRepository.findById(nonExistentId)).thenReturn(Optional.empty());
 
-        assertThrows(RuntimeException.class, () -> {
-            roleService.updateRole(nonExistentId, testRole);
-        });
+        assertThrows(RuntimeException.class, () -> roleService.updateRole(nonExistentId, testRole));
 
         verify(roleRepository).findById(nonExistentId);
         verify(roleRepository, never()).existsByName(anyString());
@@ -191,9 +186,7 @@ class RoleServiceTest {
         when(roleRepository.findById(testRole.getId())).thenReturn(Optional.of(testEntity));
         when(roleRepository.existsByName("EXISTING_ROLE")).thenReturn(true);
 
-        assertThrows(RuntimeException.class, () -> {
-            roleService.updateRole(testRole.getId(), updatedRole);
-        });
+        assertThrows(RuntimeException.class, () -> roleService.updateRole(testRole.getId(), updatedRole));
 
         verify(roleRepository).findById(testRole.getId());
         verify(roleRepository).existsByName("EXISTING_ROLE");
@@ -223,9 +216,7 @@ class RoleServiceTest {
         when(roleRepository.existsById(testRole.getId())).thenReturn(true);
         when(userRoleRepository.findByRoleId(testRole.getId())).thenReturn(List.of());
 
-        assertDoesNotThrow(() -> {
-            roleService.deleteRole(testRole.getId());
-        });
+        assertDoesNotThrow(() -> roleService.deleteRole(testRole.getId()));
 
         verify(roleRepository).existsById(testRole.getId());
         verify(userRoleRepository).findByRoleId(testRole.getId());
@@ -241,9 +232,7 @@ class RoleServiceTest {
             mock(ru.oldzoomer.pingtower.settings_manager.entity.UserRoleEntity.class)
         ));
 
-        assertDoesNotThrow(() -> {
-            roleService.deleteRole(testRole.getId());
-        });
+        assertDoesNotThrow(() -> roleService.deleteRole(testRole.getId()));
 
         verify(roleRepository).existsById(testRole.getId());
         verify(userRoleRepository).findByRoleId(testRole.getId());
@@ -256,9 +245,7 @@ class RoleServiceTest {
         UUID nonExistentId = UUID.randomUUID();
         when(roleRepository.existsById(nonExistentId)).thenReturn(false);
 
-        assertThrows(RuntimeException.class, () -> {
-            roleService.deleteRole(nonExistentId);
-        });
+        assertThrows(RuntimeException.class, () -> roleService.deleteRole(nonExistentId));
 
         verify(roleRepository).existsById(nonExistentId);
         verify(userRoleRepository, never()).findByRoleId(any(UUID.class));

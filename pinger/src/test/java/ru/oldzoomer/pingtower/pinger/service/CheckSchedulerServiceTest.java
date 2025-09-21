@@ -11,8 +11,8 @@ import ru.oldzoomer.pingtower.pinger.kafka.CheckResultProducer;
 import ru.oldzoomer.pingtower.pinger.kafka.SettingsConsumer;
 
 import java.util.Map;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
+
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)

@@ -1,19 +1,19 @@
 package ru.oldzoomer.pingtower.statistics.service;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.springframework.stereotype.Service;
-
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import ru.oldzoomer.pingtower.statistics.cassandra.entity.AggregatedCheckResult;
+import org.springframework.stereotype.Service;
 import ru.oldzoomer.pingtower.statistics.cassandra.entity.RawCheckResult;
 import ru.oldzoomer.pingtower.statistics.cassandra.repository.AggregatedCheckResultRepository;
 import ru.oldzoomer.pingtower.statistics.cassandra.repository.RawCheckResultRepository;
 import ru.oldzoomer.pingtower.statistics.dto.CheckResult;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -31,7 +31,7 @@ public class StatisticsRetrievalService {
         try {
             List<RawCheckResult> rawResults = rawCheckResultRepository.findByKeyCheckIdOrderByKeyTimestampDesc(checkId);
             if (!rawResults.isEmpty()) {
-                return convertToCheckResult(rawResults.get(0));
+                return convertToCheckResult(rawResults.getFirst());
             }
             return null;
         } catch (Exception e) {
@@ -95,12 +95,9 @@ public class StatisticsRetrievalService {
             if (to == null) {
                 to = LocalDateTime.now();
             }
-            
-            List<AggregatedCheckResult> aggregatedResults = 
-                aggregatedCheckResultRepository.findByKeyCheckIdAndKeyAggregationIntervalAndKeyTimestampBetween(
-                    checkId, interval, from, to);
-            
-            return aggregatedResults;
+
+            return aggregatedCheckResultRepository.findByKeyCheckIdAndKeyAggregationIntervalAndKeyTimestampBetween(
+                checkId, interval, from, to);
         } catch (Exception e) {
             log.error("Failed to get aggregated data for checkId: {}, interval: {}", checkId, interval, e);
             return null;
@@ -164,52 +161,15 @@ public class StatisticsRetrievalService {
     /**
      * Класс для данных дашборда
      */
+    @Setter
+    @Getter
     public static class DashboardData {
+        // Геттеры и сеттеры
         private int totalChecks = 0;
         private int upChecks = 0;
         private int downChecks = 0;
         private int unknownChecks = 0;
         private double overallUptime = 0.0;
-        
-        // Геттеры и сеттеры
-        public int getTotalChecks() {
-            return totalChecks;
-        }
-        
-        public void setTotalChecks(int totalChecks) {
-            this.totalChecks = totalChecks;
-        }
-        
-        public int getUpChecks() {
-            return upChecks;
-        }
-        
-        public void setUpChecks(int upChecks) {
-            this.upChecks = upChecks;
-        }
-        
-        public int getDownChecks() {
-            return downChecks;
-        }
-        
-        public void setDownChecks(int downChecks) {
-            this.downChecks = downChecks;
-        }
-        
-        public int getUnknownChecks() {
-            return unknownChecks;
-        }
-        
-        public void setUnknownChecks(int unknownChecks) {
-            this.unknownChecks = unknownChecks;
-        }
-        
-        public double getOverallUptime() {
-            return overallUptime;
-        }
-        
-        public void setOverallUptime(double overallUptime) {
-            this.overallUptime = overallUptime;
-        }
+
     }
 }

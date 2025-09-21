@@ -16,7 +16,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -63,7 +62,7 @@ class UserServiceTest {
 
         assertNotNull(result);
         assertEquals(1, result.size());
-        assertEquals("john_doe", result.get(0).getUsername());
+        assertEquals("john_doe", result.getFirst().getUsername());
         verify(userRepository).findAll();
     }
 
@@ -163,9 +162,7 @@ class UserServiceTest {
     void testCreateUser_UsernameExists() {
         when(userRepository.existsByUsername("john_doe")).thenReturn(true);
 
-        assertThrows(RuntimeException.class, () -> {
-            userService.createUser(testUser);
-        });
+        assertThrows(RuntimeException.class, () -> userService.createUser(testUser));
 
         verify(userRepository).existsByUsername("john_doe");
         verify(userRepository, never()).existsByEmail(anyString());
@@ -177,9 +174,7 @@ class UserServiceTest {
         when(userRepository.existsByUsername("john_doe")).thenReturn(false);
         when(userRepository.existsByEmail("john.doe@example.com")).thenReturn(true);
 
-        assertThrows(RuntimeException.class, () -> {
-            userService.createUser(testUser);
-        });
+        assertThrows(RuntimeException.class, () -> userService.createUser(testUser));
 
         verify(userRepository).existsByUsername("john_doe");
         verify(userRepository).existsByEmail("john.doe@example.com");
@@ -213,9 +208,7 @@ class UserServiceTest {
         UUID nonExistentId = UUID.randomUUID();
         when(userRepository.findById(nonExistentId)).thenReturn(Optional.empty());
 
-        assertThrows(RuntimeException.class, () -> {
-            userService.updateUser(nonExistentId, testUser);
-        });
+        assertThrows(RuntimeException.class, () -> userService.updateUser(nonExistentId, testUser));
 
         verify(userRepository).findById(nonExistentId);
         verify(userRepository, never()).existsByUsername(anyString());
@@ -232,9 +225,7 @@ class UserServiceTest {
         when(userRepository.findById(testUser.getId())).thenReturn(Optional.of(testEntity));
         when(userRepository.existsByUsername("existing_user")).thenReturn(true);
 
-        assertThrows(RuntimeException.class, () -> {
-            userService.updateUser(testUser.getId(), updatedUser);
-        });
+        assertThrows(RuntimeException.class, () -> userService.updateUser(testUser.getId(), updatedUser));
 
         verify(userRepository).findById(testUser.getId());
         verify(userRepository).existsByUsername("existing_user");
@@ -251,9 +242,7 @@ class UserServiceTest {
         when(userRepository.findById(testUser.getId())).thenReturn(Optional.of(testEntity));
         when(userRepository.existsByEmail("existing@example.com")).thenReturn(true);
 
-        assertThrows(RuntimeException.class, () -> {
-            userService.updateUser(testUser.getId(), updatedUser);
-        });
+        assertThrows(RuntimeException.class, () -> userService.updateUser(testUser.getId(), updatedUser));
 
         verify(userRepository).findById(testUser.getId());
         verify(userRepository, never()).existsByUsername("john_doe");
@@ -285,9 +274,7 @@ class UserServiceTest {
     void testDeleteUser_Success() {
         when(userRepository.existsById(testUser.getId())).thenReturn(true);
 
-        assertDoesNotThrow(() -> {
-            userService.deleteUser(testUser.getId());
-        });
+        assertDoesNotThrow(() -> userService.deleteUser(testUser.getId()));
 
         verify(userRepository).existsById(testUser.getId());
         verify(userRepository).deleteById(testUser.getId());
@@ -298,9 +285,7 @@ class UserServiceTest {
         UUID nonExistentId = UUID.randomUUID();
         when(userRepository.existsById(nonExistentId)).thenReturn(false);
 
-        assertThrows(RuntimeException.class, () -> {
-            userService.deleteUser(nonExistentId);
-        });
+        assertThrows(RuntimeException.class, () -> userService.deleteUser(nonExistentId));
 
         verify(userRepository).existsById(nonExistentId);
         verify(userRepository, never()).deleteById(any(UUID.class));

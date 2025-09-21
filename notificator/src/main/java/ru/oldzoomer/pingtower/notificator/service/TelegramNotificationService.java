@@ -32,7 +32,6 @@ public class TelegramNotificationService implements NotificationChannel {
             
             if (chatId == null || chatId.isEmpty()) {
                 log.warn("Telegram chat ID not configured");
-                return;
             }
             
             // Пример отправки через Telegram (закомментирован для демонстрации)

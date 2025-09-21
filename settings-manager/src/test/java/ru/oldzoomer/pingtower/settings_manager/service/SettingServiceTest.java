@@ -16,7 +16,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -65,8 +64,8 @@ class SettingServiceTest {
 
         assertNotNull(result);
         assertEquals(1, result.size());
-        assertEquals("pinger", result.get(0).getModule());
-        assertEquals("timeout", result.get(0).getKey());
+        assertEquals("pinger", result.getFirst().getModule());
+        assertEquals("timeout", result.getFirst().getKey());
         verify(settingRepository).findAll();
     }
 
@@ -89,7 +88,7 @@ class SettingServiceTest {
 
         assertNotNull(result);
         assertEquals(1, result.size());
-        assertEquals("pinger", result.get(0).getModule());
+        assertEquals("pinger", result.getFirst().getModule());
         verify(settingRepository).findByModule("pinger");
     }
 
@@ -169,9 +168,7 @@ class SettingServiceTest {
         when(settingRepository.findByModuleAndKey("pinger", "nonexistent"))
                 .thenReturn(Optional.empty());
 
-        assertThrows(RuntimeException.class, () -> {
-            settingService.updateSetting("pinger", "nonexistent", updatedSetting);
-        });
+        assertThrows(RuntimeException.class, () -> settingService.updateSetting("pinger", "nonexistent", updatedSetting));
 
         verify(settingRepository).findByModuleAndKey("pinger", "nonexistent");
         verify(settingRepository, never()).save(any(SettingEntity.class));
@@ -182,9 +179,7 @@ class SettingServiceTest {
         when(settingRepository.findByModuleAndKey("pinger", "timeout"))
                 .thenReturn(Optional.of(testEntity));
 
-        assertDoesNotThrow(() -> {
-            settingService.deleteSetting("pinger", "timeout");
-        });
+        assertDoesNotThrow(() -> settingService.deleteSetting("pinger", "timeout"));
 
         verify(settingRepository).findByModuleAndKey("pinger", "timeout");
         verify(settingRepository).delete(testEntity);
@@ -195,9 +190,7 @@ class SettingServiceTest {
         when(settingRepository.findByModuleAndKey("pinger", "nonexistent"))
                 .thenReturn(Optional.empty());
 
-        assertThrows(RuntimeException.class, () -> {
-            settingService.deleteSetting("pinger", "nonexistent");
-        });
+        assertThrows(RuntimeException.class, () -> settingService.deleteSetting("pinger", "nonexistent"));
 
         verify(settingRepository).findByModuleAndKey("pinger", "nonexistent");
         verify(settingRepository, never()).delete(any(SettingEntity.class));

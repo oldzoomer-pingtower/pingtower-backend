@@ -9,7 +9,6 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-
 import ru.oldzoomer.pingtower.statistics.config.SecurityConfig;
 import ru.oldzoomer.pingtower.statistics.dto.CheckResult;
 import ru.oldzoomer.pingtower.statistics.service.StatisticsRetrievalService;
@@ -35,12 +34,11 @@ class StatisticsControllerTest {
     @MockitoBean
     private StatisticsRetrievalService statisticsRetrievalService;
 
-    private LocalDateTime testTimestamp;
     private CheckResult testCheckResult;
 
     @BeforeEach
     void setUp() {
-        testTimestamp = LocalDateTime.of(2024, 1, 15, 10, 30, 0);
+        LocalDateTime testTimestamp = LocalDateTime.of(2024, 1, 15, 10, 30, 0);
         
         testCheckResult = new CheckResult();
         testCheckResult.setCheckId("test-check-1");

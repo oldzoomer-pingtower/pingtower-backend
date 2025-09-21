@@ -3,7 +3,6 @@ package ru.oldzoomer.pingtower.settings_manager.repository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-
 import ru.oldzoomer.pingtower.settings_manager.SimpleTestConfiguration;
 import ru.oldzoomer.pingtower.settings_manager.entity.SettingEntity;
 
@@ -39,7 +38,7 @@ class SettingRepositoryTest extends SimpleTestConfiguration {
                 .containsExactlyInAnyOrder("timeout", "retries");
         
         assertThat(notificatorSettings).hasSize(1);
-        assertThat(notificatorSettings.get(0).getKey()).isEqualTo("enabled");
+        assertThat(notificatorSettings.getFirst().getKey()).isEqualTo("enabled");
         
         assertThat(nonexistentSettings).isEmpty();
     }

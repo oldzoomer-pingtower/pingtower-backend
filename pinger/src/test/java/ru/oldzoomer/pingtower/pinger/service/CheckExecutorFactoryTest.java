@@ -10,7 +10,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class CheckExecutorFactoryTest {
@@ -98,30 +99,22 @@ class CheckExecutorFactoryTest {
         when(tcpCheckExecutor.supports("UNKNOWN")).thenReturn(false);
         when(dnsCheckExecutor.supports("UNKNOWN")).thenReturn(false);
 
-        assertThrows(IllegalArgumentException.class, () -> {
-            checkExecutorFactory.getExecutor("UNKNOWN");
-        });
+        assertThrows(IllegalArgumentException.class, () -> checkExecutorFactory.getExecutor("UNKNOWN"));
     }
 
     @Test
     void testGetExecutor_NullType() {
-        assertThrows(IllegalArgumentException.class, () -> {
-            checkExecutorFactory.getExecutor(null);
-        });
+        assertThrows(IllegalArgumentException.class, () -> checkExecutorFactory.getExecutor(null));
     }
 
     @Test
     void testGetExecutor_EmptyType() {
-        assertThrows(IllegalArgumentException.class, () -> {
-            checkExecutorFactory.getExecutor("");
-        });
+        assertThrows(IllegalArgumentException.class, () -> checkExecutorFactory.getExecutor(""));
     }
 
     @Test
     void testGetExecutor_WhitespaceType() {
-        assertThrows(IllegalArgumentException.class, () -> {
-            checkExecutorFactory.getExecutor("   ");
-        });
+        assertThrows(IllegalArgumentException.class, () -> checkExecutorFactory.getExecutor("   "));
     }
 
 }

@@ -65,7 +65,7 @@ class RawCheckResultRepositoryTest extends TestConfiguration {
         assertThat(results).hasSize(2);
         assertThat(results).extracting(r -> r.getKey().getTimestamp())
                 .containsExactlyInAnyOrder(testTimestamp1, testTimestamp2);
-        assertThat(results).extracting(r -> r.getStatus())
+        assertThat(results).extracting(RawCheckResult::getStatus)
                 .containsExactlyInAnyOrder("UP", "DOWN");
     }
 

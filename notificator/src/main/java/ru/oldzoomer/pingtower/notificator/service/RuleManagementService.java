@@ -9,7 +9,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -28,7 +27,7 @@ public class RuleManagementService {
     public Map<String, Object> getRules(int page, int size) {
         log.info("Получение списка правил уведомлений, страница: {}, размер: {}", page, size);
         
-        List<NotificationRuleDTO> allRules = rules.values().stream().collect(Collectors.toList());
+        List<NotificationRuleDTO> allRules = rules.values().stream().toList();
         
         int total = allRules.size();
         int fromIndex = (page - 1) * size;

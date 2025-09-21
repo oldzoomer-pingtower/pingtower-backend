@@ -1,5 +1,6 @@
 package ru.oldzoomer.pingtower.statistics;
 
+import com.redis.testcontainers.RedisContainer;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.test.annotation.DirtiesContext;
@@ -10,15 +11,12 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.redpanda.RedpandaContainer;
 
-import com.redis.testcontainers.RedisContainer;
-
 @SpringBootTest
 @Testcontainers
 @ActiveProfiles("test")
 @DirtiesContext
 public abstract class TestConfiguration {
 
-    @SuppressWarnings("resource")
     @Container
     @ServiceConnection
     public static final CassandraContainer cassandra = new CassandraContainer("cassandra")
@@ -26,13 +24,11 @@ public abstract class TestConfiguration {
             .withEnv("CASSANDRA_ENDPOINT_SNITCH", "GossipingPropertyFileSnitch")
             .waitingFor(Wait.forSuccessfulCommand("cqlsh -e 'describe keyspaces;'"));
 
-    @SuppressWarnings("resource")
     @Container
     @ServiceConnection
     public static final RedpandaContainer redpandaContainer = new RedpandaContainer("redpandadata/redpanda")
             .waitingFor(Wait.forSuccessfulCommand("rpk cluster health"));
 
-    @SuppressWarnings("resource")
     @Container
     @ServiceConnection
     public static final RedisContainer redisContainer = new RedisContainer("redis:alpine")

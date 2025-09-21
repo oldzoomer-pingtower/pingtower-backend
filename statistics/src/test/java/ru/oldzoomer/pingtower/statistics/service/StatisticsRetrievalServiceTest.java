@@ -15,6 +15,7 @@ import ru.oldzoomer.pingtower.statistics.dto.CheckResult;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -163,7 +164,7 @@ class StatisticsRetrievalServiceTest {
 
         // Then
         assertThat(results).hasSize(1);
-        assertThat(results.get(0).getStatus()).isEqualTo("UP");
+        assertThat(results.getFirst().getStatus()).isEqualTo("UP");
     }
 
     @Test

@@ -26,7 +26,6 @@ public class WebhookNotificationService implements NotificationChannel {
             
             if (webhookUrl == null || webhookUrl.isEmpty()) {
                 log.warn("Webhook URL not configured");
-                return;
             }
             
             // Пример отправки webhook (закомментирован для демонстрации)

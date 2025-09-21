@@ -134,9 +134,8 @@ public class HttpCheckExecutor implements CheckExecutor {
                 // Проверка первого сертификата (сертификата сервера)
                 Certificate certificate = certificates[0];
                 
-                if (certificate instanceof X509Certificate) {
-                    X509Certificate x509Cert = (X509Certificate) certificate;
-                    
+                if (certificate instanceof X509Certificate x509Cert) {
+
                     // Установка флага валидности SSL
                     result.getMetrics().setSslValid(true);
                     

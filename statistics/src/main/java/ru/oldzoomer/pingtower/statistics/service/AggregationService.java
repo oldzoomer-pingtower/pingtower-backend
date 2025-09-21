@@ -1,16 +1,16 @@
 package ru.oldzoomer.pingtower.statistics.service;
 
-import java.time.LocalDateTime;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
-import org.springframework.stereotype.Service;
-
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 import ru.oldzoomer.pingtower.statistics.cassandra.entity.AggregatedCheckResult;
 import ru.oldzoomer.pingtower.statistics.cassandra.repository.AggregatedCheckResultRepository;
 import ru.oldzoomer.pingtower.statistics.dto.CheckResult;
+
+import java.time.LocalDateTime;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Service
@@ -115,9 +115,13 @@ public class AggregationService {
      * Класс для хранения промежуточных данных агрегации
      */
     private static class AggregationData {
+        @Getter
         private int count = 0;
+        @Getter
         private int upCount = 0;
+        @Getter
         private int downCount = 0;
+        @Getter
         private int unknownCount = 0;
         private long totalResponseTime = 0;
         private int minResponseTime = Integer.MAX_VALUE;
@@ -155,23 +159,7 @@ public class AggregationService {
             minResponseTime = Integer.MAX_VALUE;
             maxResponseTime = Integer.MIN_VALUE;
         }
-        
-        public int getCount() {
-            return count;
-        }
-        
-        public int getUpCount() {
-            return upCount;
-        }
-        
-        public int getDownCount() {
-            return downCount;
-        }
-        
-        public int getUnknownCount() {
-            return unknownCount;
-        }
-        
+
         public Double getAvgResponseTime() {
             return count > 0 ? (double) totalResponseTime / count : 0.0;
         }

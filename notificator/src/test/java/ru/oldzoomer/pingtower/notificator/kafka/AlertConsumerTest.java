@@ -10,7 +10,6 @@ import ru.oldzoomer.pingtower.notificator.service.NotificationService;
 
 import java.time.LocalDateTime;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)

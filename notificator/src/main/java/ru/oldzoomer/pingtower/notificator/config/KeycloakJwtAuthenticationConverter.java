@@ -11,7 +11,6 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtGra
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.stream.Collectors;
 
 @Component
@@ -21,12 +20,9 @@ public class KeycloakJwtAuthenticationConverter implements Converter<Jwt, Abstra
 
     @Override
     public AbstractAuthenticationToken convert(@NonNull Jwt jwt) {
-        Collection<GrantedAuthority> authorities = Collections.unmodifiableCollection(
-                jwtGrantedAuthoritiesConverter.convert(jwt)
-                        .stream()
-                        .map(authority -> new SimpleGrantedAuthority("ROLE_" + authority.getAuthority()))
-                        .collect(Collectors.toList())
-        );
+        Collection<GrantedAuthority> authorities = jwtGrantedAuthoritiesConverter.convert(jwt)
+                .stream()
+                .map(authority -> new SimpleGrantedAuthority("ROLE_" + authority.getAuthority())).collect(Collectors.toUnmodifiableList());
 
         return new JwtAuthenticationToken(jwt, authorities);
     }

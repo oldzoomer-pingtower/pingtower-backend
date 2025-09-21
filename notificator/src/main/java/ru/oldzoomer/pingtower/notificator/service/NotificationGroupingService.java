@@ -1,13 +1,16 @@
 package ru.oldzoomer.pingtower.notificator.service;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Service;
 import ru.oldzoomer.pingtower.notificator.dto.AlertMessage;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
@@ -24,7 +27,9 @@ public class NotificationGroupingService {
     
     public static class NotificationGroup {
         private final List<AlertMessage> alerts = new ArrayList<>();
+        @Getter
         private final LocalDateTime createdAt = LocalDateTime.now();
+        @Getter
         private LocalDateTime lastUpdatedAt = LocalDateTime.now();
         
         public void addAlert(AlertMessage alert) {
@@ -37,15 +42,7 @@ public class NotificationGroupingService {
         public List<AlertMessage> getAlerts() {
             return new ArrayList<>(alerts);
         }
-        
-        public LocalDateTime getCreatedAt() {
-            return createdAt;
-        }
-        
-        public LocalDateTime getLastUpdatedAt() {
-            return lastUpdatedAt;
-        }
-        
+
         public int size() {
             return alerts.size();
         }
@@ -118,9 +115,7 @@ public class NotificationGroupingService {
             log.info("Found {} ready notification groups", readyGroups.size());
             
             // Удаление отправленных групп
-            readyGroups.forEach(group -> {
-                notificationGroups.values().removeIf(g -> g == group);
-            });
+            readyGroups.forEach(group -> notificationGroups.values().removeIf(g -> g == group));
             
             return readyGroups;
         } catch (Exception e) {

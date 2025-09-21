@@ -1,5 +1,6 @@
 package ru.oldzoomer.pingtower.notificator;
 
+import com.redis.testcontainers.RedisContainer;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
@@ -9,7 +10,6 @@ import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.redpanda.RedpandaContainer;
-import com.redis.testcontainers.RedisContainer;
 
 @SpringBootTest
 @Testcontainers
@@ -17,13 +17,11 @@ import com.redis.testcontainers.RedisContainer;
 @DirtiesContext
 public class TestConfiguration {
 
-    @SuppressWarnings("resource")
     @Container
     @ServiceConnection
     public static final RedpandaContainer redpandaContainer = new RedpandaContainer("redpandadata/redpanda")
             .waitingFor(Wait.forSuccessfulCommand("rpk cluster health"));
 
-    @SuppressWarnings("resource")
     @Container
     @ServiceConnection
     public static final RedisContainer redisContainer = new RedisContainer("redis:alpine")

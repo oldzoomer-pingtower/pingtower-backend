@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -50,7 +49,7 @@ class UserRoleServiceTest {
 
         assertNotNull(result);
         assertEquals(1, result.size());
-        assertEquals(testRoleId, result.get(0));
+        assertEquals(testRoleId, result.getFirst());
         verify(userRoleRepository).findByUserId(testUserId);
     }
 
@@ -58,9 +57,7 @@ class UserRoleServiceTest {
     void testGetRolesForUser_Empty() {
         when(userRoleRepository.findByUserId(testUserId)).thenReturn(List.of());
 
-        assertThrows(EntityNotFoundException.class, () -> {
-            userRoleService.getRolesForUser(testUserId);
-        });
+        assertThrows(EntityNotFoundException.class, () -> userRoleService.getRolesForUser(testUserId));
         verify(userRoleRepository).findByUserId(testUserId);
     }
 
@@ -72,7 +69,7 @@ class UserRoleServiceTest {
 
         assertNotNull(result);
         assertEquals(1, result.size());
-        assertEquals(testUserId, result.get(0));
+        assertEquals(testUserId, result.getFirst());
         verify(userRoleRepository).findByRoleId(testRoleId);
     }
 
@@ -80,9 +77,7 @@ class UserRoleServiceTest {
     void testGetUsersWithRole_Empty() {
         when(userRoleRepository.findByRoleId(testRoleId)).thenReturn(List.of());
 
-        assertThrows(EntityNotFoundException.class, () -> {
-            userRoleService.getUsersWithRole(testRoleId);
-        });
+        assertThrows(EntityNotFoundException.class, () -> userRoleService.getUsersWithRole(testRoleId));
         verify(userRoleRepository).findByRoleId(testRoleId);
     }
 
@@ -128,9 +123,7 @@ class UserRoleServiceTest {
     void testRemoveRoleFromUser() {
         when(userRoleRepository.findByUserIdAndRoleId(testUserId, testRoleId)).thenReturn(List.of(testUserRoleEntity));
 
-        assertDoesNotThrow(() -> {
-            userRoleService.removeRoleFromUser(testUserId, testRoleId);
-        });
+        assertDoesNotThrow(() -> userRoleService.removeRoleFromUser(testUserId, testRoleId));
 
         verify(userRoleRepository).findByUserIdAndRoleId(testUserId, testRoleId);
         verify(userRoleRepository).deleteByUserIdAndRoleId(testUserId, testRoleId);
@@ -140,9 +133,7 @@ class UserRoleServiceTest {
     void testRemoveRoleFromUser_NotFound() {
         when(userRoleRepository.findByUserIdAndRoleId(testUserId, testRoleId)).thenReturn(List.of());
 
-        assertThrows(EntityNotFoundException.class, () -> {
-            userRoleService.removeRoleFromUser(testUserId, testRoleId);
-        });
+        assertThrows(EntityNotFoundException.class, () -> userRoleService.removeRoleFromUser(testUserId, testRoleId));
 
         verify(userRoleRepository).findByUserIdAndRoleId(testUserId, testRoleId);
         verify(userRoleRepository, never()).deleteByUserIdAndRoleId(any(), any());
@@ -162,9 +153,7 @@ class UserRoleServiceTest {
     void testRemoveAllRolesFromUser_Empty() {
         when(userRoleRepository.findByUserId(testUserId)).thenReturn(List.of());
 
-        assertThrows(EntityNotFoundException.class, () -> {
-            userRoleService.removeAllRolesFromUser(testUserId);
-        });
+        assertThrows(EntityNotFoundException.class, () -> userRoleService.removeAllRolesFromUser(testUserId));
 
         verify(userRoleRepository).findByUserId(testUserId);
         verify(userRoleRepository, never()).deleteAll(any());

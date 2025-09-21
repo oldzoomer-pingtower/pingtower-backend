@@ -9,7 +9,6 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-
 import ru.oldzoomer.pingtower.settings_manager.config.SecurityConfig;
 import ru.oldzoomer.pingtower.settings_manager.exception.EntityNotFoundException;
 import ru.oldzoomer.pingtower.settings_manager.service.UserRoleService;
@@ -17,7 +16,6 @@ import ru.oldzoomer.pingtower.settings_manager.service.UserRoleService;
 import java.util.List;
 import java.util.UUID;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;

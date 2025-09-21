@@ -1,15 +1,14 @@
 package ru.oldzoomer.pingtower.statistics.service;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.springframework.stereotype.Service;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 import ru.oldzoomer.pingtower.statistics.cassandra.entity.RawCheckResult;
 import ru.oldzoomer.pingtower.statistics.cassandra.repository.RawCheckResultRepository;
 import ru.oldzoomer.pingtower.statistics.dto.CheckResult;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -58,15 +57,7 @@ public class StatisticsProcessingService {
             
             // Преобразуем метрики в Map
             if (checkResult.getMetrics() != null) {
-                Map<String, String> metricsMap = new HashMap<>();
-                metricsMap.put("connectionTime", String.valueOf(checkResult.getMetrics().getConnectionTime()));
-                metricsMap.put("timeToFirstByte", String.valueOf(checkResult.getMetrics().getTimeToFirstByte()));
-                if (checkResult.getMetrics().getSslValid() != null) {
-                    metricsMap.put("sslValid", String.valueOf(checkResult.getMetrics().getSslValid()));
-                }
-                if (checkResult.getMetrics().getSslExpirationDate() != null) {
-                    metricsMap.put("sslExpirationDate", checkResult.getMetrics().getSslExpirationDate().toString());
-                }
+                Map<String, String> metricsMap = getMetricsMap(checkResult);
                 rawCheckResult.setMetrics(metricsMap);
             }
             
@@ -76,5 +67,18 @@ public class StatisticsProcessingService {
         } catch (Exception e) {
             log.error("Failed to save raw check result to Cassandra: checkId={}", checkResult.getCheckId(), e);
         }
+    }
+
+    private static Map<String, String> getMetricsMap(CheckResult checkResult) {
+        Map<String, String> metricsMap = new HashMap<>();
+        metricsMap.put("connectionTime", String.valueOf(checkResult.getMetrics().getConnectionTime()));
+        metricsMap.put("timeToFirstByte", String.valueOf(checkResult.getMetrics().getTimeToFirstByte()));
+        if (checkResult.getMetrics().getSslValid() != null) {
+            metricsMap.put("sslValid", String.valueOf(checkResult.getMetrics().getSslValid()));
+        }
+        if (checkResult.getMetrics().getSslExpirationDate() != null) {
+            metricsMap.put("sslExpirationDate", checkResult.getMetrics().getSslExpirationDate().toString());
+        }
+        return metricsMap;
     }
 }

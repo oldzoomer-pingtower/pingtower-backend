@@ -1,10 +1,11 @@
 package ru.oldzoomer.pingtower.notificator.service;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Service;
 import ru.oldzoomer.pingtower.notificator.dto.AlertMessage;
 
 import java.time.LocalDateTime;
@@ -20,27 +21,17 @@ public class EscalationService {
     // Хранилище состояния эскалации для каждого уведомления
     private final Map<String, EscalationState> escalationStates = new ConcurrentHashMap<>();
     
+    @Getter
     public static class EscalationState {
         private int escalationLevel = 0;
-        private LocalDateTime firstAlertTime = LocalDateTime.now();
+        private final LocalDateTime firstAlertTime = LocalDateTime.now();
         private LocalDateTime lastEscalationTime = LocalDateTime.now();
-        
-        public int getEscalationLevel() {
-            return escalationLevel;
-        }
-        
+
         public void incrementEscalationLevel() {
             this.escalationLevel++;
             this.lastEscalationTime = LocalDateTime.now();
         }
-        
-        public LocalDateTime getFirstAlertTime() {
-            return firstAlertTime;
-        }
-        
-        public LocalDateTime getLastEscalationTime() {
-            return lastEscalationTime;
-        }
+
     }
     
     /**

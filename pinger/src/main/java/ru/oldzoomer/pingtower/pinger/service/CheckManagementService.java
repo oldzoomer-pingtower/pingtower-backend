@@ -9,7 +9,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -28,7 +27,7 @@ public class CheckManagementService {
     public Map<String, Object> getChecks(int page, int size) {
         log.info("Получение списка настроек проверок, страница: {}, размер: {}", page, size);
         
-        List<CheckConfigurationDTO> allChecks = checks.values().stream().collect(Collectors.toList());
+        List<CheckConfigurationDTO> allChecks = checks.values().stream().toList();
         
         int total = allChecks.size();
         int fromIndex = (page - 1) * size;

@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import ru.oldzoomer.pingtower.statistics.TestConfiguration;
 import ru.oldzoomer.pingtower.statistics.cassandra.entity.AggregatedCheckResult;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -66,9 +67,9 @@ class AggregatedCheckResultRepositoryTest extends TestConfiguration {
         assertThat(results).hasSize(2);
         assertThat(results).extracting(r -> r.getKey().getTimestamp())
                 .containsExactlyInAnyOrder(testTimestamp1, testTimestamp2);
-        assertThat(results).extracting(r -> r.getUpCount())
+        assertThat(results).extracting(AggregatedCheckResult::getUpCount)
                 .containsExactlyInAnyOrder(10, 15);
-        assertThat(results).extracting(r -> r.getDownCount())
+        assertThat(results).extracting(AggregatedCheckResult::getDownCount)
                 .containsExactlyInAnyOrder(2, 3);
     }
 
@@ -88,9 +89,9 @@ class AggregatedCheckResultRepositoryTest extends TestConfiguration {
 
         // Then
         assertThat(results).hasSize(1);
-        assertThat(results.get(0).getKey().getAggregationInterval()).isEqualTo("DAILY");
-        assertThat(results.get(0).getUpCount()).isEqualTo(100);
-        assertThat(results.get(0).getDownCount()).isEqualTo(5);
+        assertThat(results.getFirst().getKey().getAggregationInterval()).isEqualTo("DAILY");
+        assertThat(results.getFirst().getUpCount()).isEqualTo(100);
+        assertThat(results.getFirst().getDownCount()).isEqualTo(5);
     }
 
     @Test
