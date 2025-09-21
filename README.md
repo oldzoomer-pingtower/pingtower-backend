@@ -11,6 +11,8 @@ The backend consists of several microservices:
 - **statistics** - Service for statistics and data aggregation
 - **common** - Shared library module with common components
 
+For detailed architecture documentation, see [Architecture Documentation](docs/architecture/README.md).
+
 ## Authentication and Authorization
 
 The services use Keycloak for authentication and authorization. Keycloak is included in the Docker Compose configuration and will be automatically started with the services.
