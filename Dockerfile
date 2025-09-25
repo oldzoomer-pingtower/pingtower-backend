@@ -22,7 +22,7 @@ ARG BUILD_HOME=/build
 #
 # Gradle image for the build stage.
 #
-FROM eclipse-temurin:21-jdk-alpine AS build-image
+FROM eclipse-temurin:25-jdk-alpine AS build-image
 
 #
 # Set the working directory.
@@ -55,7 +55,7 @@ RUN ./gradlew :${SERVICE_NAME}:build --no-daemon -x test;
 #
 # Java image for the application to run in.
 #
-FROM eclipse-temurin:21-jre-alpine
+FROM eclipse-temurin:25-jre-alpine
 
 #
 # Build arguments
