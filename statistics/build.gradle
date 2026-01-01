@@ -18,5 +18,5 @@ dependencies {
     testImplementation 'org.testcontainers:junit-jupiter'
     testImplementation 'org.testcontainers:redpanda'
     testImplementation 'com.redis:testcontainers-redis'
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.13'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.1'
 }
